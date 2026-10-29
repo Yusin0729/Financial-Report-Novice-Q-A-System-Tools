@@ -1,0 +1,5 @@
+# 使用既有 Code/.venv；基礎環境見Code/requirements.lock。
+sentence-transformers==6.2.0
+chromadb==1.5.9
+voyageai==0.5.0
+python-dotenv==1.2.4

@@ -1,0 +1,21 @@
+Code/.venv/
+Code/.venv_pdf/
+Code/.cache/
+Code_2/.cache/
+VectorStore/
+**/__pycache__/
+*.pyc
+.cache/
+.env
+.env.*
+!.env.example
+
+# Local experiment data and credentials; code/notebooks remain tracked.
+/Output/
+/outputs/
+/Data/
+/Financial Statements/
+/.runtime/
+/.codex-remote-attachments/
+/Code/config/api_profiles.json
+/Code/config/api_profiles*.sqlite*

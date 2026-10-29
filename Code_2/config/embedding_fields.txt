@@ -1,0 +1,25 @@
+# 歷史相容設定副本；目前建庫請修改 Code/config/embedding_fields.txt，此檔不控制第五階段。
+# 設定對象：prepared.json 中每個 chunks[] 項目；使用點號表示巢狀欄位。
+# embedding = 只向量化，metadata = 只作標籤，both = 兩者，ignore = 忽略。
+# 修改後重新執行建庫即可；不同設定自動隔離為不同collection，不混用舊向量。
+# 必要識別／來源及完整original_chunk固定保留，不能用此設定移除。
+# 欄位寫錯、設定檔缺少、沒有任何embedding欄位，都會明確停止。
+# embedding_text已含標題與pipe表格；一般不需再加原content，避免重複。
+[FIELDS]
+embedding_text = embedding
+metadata.stock_code = metadata
+metadata.years = metadata
+metadata.page = metadata
+metadata.content_type = metadata
+metadata.main_title = metadata
+metadata.hd2_title = metadata
+metadata.data_tags = metadata
+metadata.table_context = metadata
+metadata.appendix_id = metadata
+chunk_id = ignore
+metadata.doc_id = ignore
+original_chunk.content = ignore
+original_chunk.title = ignore
+# 若要只向量化正文，可將embedding_text改ignore、original_chunk.content改embedding。
+# original_chunk.content用於embedding時會轉成乾淨文字／pipe表格，不直接送HTML。
+# original_chunk.title用於embedding時會轉成可讀標題索引；複雜物件不能當Chroma篩選標籤。

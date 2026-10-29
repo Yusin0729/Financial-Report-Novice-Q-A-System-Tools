@@ -1,0 +1,34 @@
+// 合成DOM／FileReader驗證，不呼叫模型、不讀使用者金鑰。
+const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
+class Node{constructor(tag='div'){this.tag=tag;this.children=[];this.value='';this.checked=false;this.disabled=false;this.hidden=false;this.required=false;this.dataset={};this.classList={add(){},remove(){}};this.handlers={};}setAttribute(k,v){this[k]=v;}append(...x){this.children.push(...x);}replaceChildren(...x){this.children=x;}closest(){return this.label||(this.label=new Node());}addEventListener(k,f){this.handlers[k]=f;}}
+const map=new Map(),$=id=>{if(!map.has(id))map.set(id,new Node());return map.get(id);},el=(tag,text)=>{const n=new Node(tag);n.textContent=text||'';return n;};
+const collect=n=>[n,...n.children.flatMap(collect)];let submitted;const requests=[];
+const state={metadata:{evaluation_enabled:true,indexes:[{backend:'bge',collection:'financial_test'}]}};
+const document={createElementNS:(_ns,tag)=>new Node(tag),querySelector:()=>({value:'retrieve'}),querySelectorAll:selector=>collect($('evaluation-questions')).filter(n=>n.dataset.evaluationId&&(!selector.endsWith(':checked')||n.checked))};
+const preview={sheet:'題目',sheets:['題目'],valid_count:1,rows:[{ID:'1',Question:'問題<script>',Answer:'只作參考',Page:'P50',Evidence_Note_Title:'標題',errors:[],filter_years:[2024],stock_code:'2330'},{ID:'26',Question:'排除',errors:[],excluded:true}]};
+const window={};const sandbox={window,$,el,state,document,JSON,FileReader:class{readAsDataURL(){this.result='data:application/xlsx;base64,ZmFrZQ==';this.onload();}},api:async(path,body)=>{requests.push([path,body]);return preview;},start:async task=>{submitted=task;},alertMessage:m=>{if(m)throw Error(m);},renderResult(){},readable(){},downloads(){}};
+vm.runInNewContext(fs.readFileSync('Code_2/functions/web/static/evaluation.js','utf8'),sandbox);
+(async()=>{window.evaluationUI.configure(state.metadata);assert.equal($('evaluation-mode-field').hidden,false);$('evaluation-mode').value='excel';$('evaluation-mode').onchange();assert.equal($('query-question').required,false);assert.equal($('query-scope-fields').hidden,true);
+$('evaluation-file').files=[{name:'題目.xlsx',size:100}];await $('evaluation-file').onchange();await new Promise(setImmediate);
+const checks=document.querySelectorAll('[data-evaluation-id]');assert.equal(checks.length,2);assert.equal(checks[0].checked,true);assert.equal(checks[1].disabled,true);
+$('query-index').value='0';$('query-topk').value='50';$('query-rerank').value='20';$('query-export').checked=true;await window.evaluationUI.submit();assert.equal(submitted.action,'evaluate');assert.equal(submitted.ids.join(','),'1');assert.equal(submitted.question,undefined);assert.equal(submitted.Answer,undefined);assert.equal(submitted.stock_code,undefined);
+window.evaluationUI.render({status:'completed',elapsed_seconds:1,summary:{scored:1,selected:1,mean_score:10},curves:{retrieval:{count:1,retrieve_k:2,rank_penalty:5,meaning:'固定扣分',points:[{k:1,mean_score:0,gain:0},{k:2,mean_score:5,gain:5}],blocks:[{start:1,end:2,mean_score:5,gain:5}],first_full_score_k:2,best_block:{start:1,end:2,gain:5}}},rows:[{ID:'1',Question:'問題',score:10,status:'retrieved',scores:{}}]});assert.equal($('evaluation-result').hidden,false);assert.ok(collect($('evaluation-result')).some(n=>(n.textContent||'').includes('平均得分 10 / 10')));
+assert.equal(collect($('evaluation-result')).filter(n=>n.tag==='svg').length,0);
+const chartCheck=collect($('evaluation-result')).find(n=>n.dataset.evaluationCharts==='toggle');
+assert.equal(chartCheck.checked,false);const chartHost=collect($('evaluation-result')).find(n=>n.id==='evaluation-charts');assert.equal(chartHost.hidden,true);
+chartCheck.checked=true;chartCheck.onchange();assert.equal(chartHost.hidden,false);
+assert.ok(collect($('evaluation-result')).some(n=>n.tag==='polyline'));
+chartCheck.checked=false;chartCheck.onchange();assert.equal(chartHost.hidden,true);
+chartCheck.checked=true;chartCheck.onchange();assert.equal(collect(chartHost).filter(n=>n.tag==='svg').length,1);
+assert.ok(collect($('evaluation-result')).some(n=>n.textContent==='查看每個 Top K 的平均得分表'));
+const c={count:1,retrieve_k:2,rank_penalty:0,meaning:'年度×標題',points:[{k:1,mean_score:5,gain:5},{k:2,mean_score:10,gain:5}],blocks:[{start:1,end:2,mean_score:10,gain:10}],first_full_score_k:2,best_block:{start:1,end:2,gain:10}};
+window.evaluationUI.render({status:'completed',elapsed_seconds:1,summary:{scored:1,selected:1,mean_score:9.8,mean_weighted_score:9.8,mean_raw_score:10},curves:{retrieval:{...c,rank_penalty:.2}},raw_curves:{retrieval:c},rows:[]});
+const secondCheck=collect($('evaluation-result')).find(n=>n.dataset.evaluationCharts==='toggle');assert.equal(secondCheck.checked,false);
+assert.equal(collect($('evaluation-result')).filter(n=>n.tag==='svg').length,0);secondCheck.checked=true;secondCheck.onchange();
+const all=collect($('evaluation-result'));assert.equal(all.filter(n=>n.tag==='svg').length,2);assert.ok(all.some(n=>n.textContent==='原始檢索：原始平均得分折線圖'));assert.ok(all.some(n=>n.textContent==='原始檢索：排名加權平均得分折線圖'));assert.ok(all.some(n=>(n.textContent||'').includes('原始平均得分 10 / 10；排名加權平均得分 9.8 / 10')));
+window.evaluationUI.render({scoring_rule:'year-title-dual/2.0',status:'completed',elapsed_seconds:1,settings:{retrieve_k:50},summary:{scored:1},curves:{},raw_curves:{},export_status:'saved',output_dir:'D:/Financial_RAG/Output/Response/qa_20261027_00-00-00_000001',rows:[]});
+const post=collect($('evaluation-result')).find(n=>n.textContent==='開始製作圖表並另存統計報告');assert.ok(post);post.onclick();assert.equal(submitted.action,'make-charts');assert.equal(submitted.source_run,'qa_20261027_00-00-00_000001');assert.equal(submitted.workbook_base64,undefined);
+$('query-multiple').checked=true;window.selectedQueryIndexes=()=>[{backend:'bge',collection:'financial_a'},{backend:'bge',collection:'financial_b'}];
+$('evaluation-generate-curves').checked=true;await window.evaluationUI.submit();assert.equal(submitted.indexes.length,2);assert.equal(submitted.generate_charts,true);
+window.evaluationUI.configure({evaluation_enabled:false});assert.equal($('evaluation-mode-field').hidden,true);assert.equal($('query-question').required,true);
+console.log('PASS：Excel讀檔預覽、排除ID、欄位隔離、逐題結果與集中停用。');})().catch(e=>{console.error(e);process.exitCode=1;});

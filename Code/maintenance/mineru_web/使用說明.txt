@@ -1,0 +1,66 @@
+MinerU 隨點隨用網頁
+==================
+
+程式位置：D:\桌面\pdf轉成markdown\MinerU_Protago-master
+
+1. 雙擊 start-web.cmd。程式在背景啟動，就緒後會自動開啟預設瀏覽器。
+2. 網址固定為 http://127.0.0.1:7860/，僅限本機存取。
+3. 上傳 PDF；Backend 選 pipeline，繁體中文的 Language 選 chinese_cht。
+4. 設定「起始頁」與「結束頁」，按 Convert。下載結果後再關閉網頁。
+5. 關閉最後一個工具分頁後，連線中斷滿 30 秒會停止本次服務及其子程序。
+6. 重新整理或 30 秒內重新連上，不會停止。多個工具分頁中只要還有一個連線，就繼續運作。
+7. 再次使用時，重新雙擊 start-web.cmd。重複啟動會開啟既有服務，不另開一組模型程序。
+
+不必操作命令視窗；不設定開機或登入自動啟動。
+可對 start-web.cmd 建立桌面捷徑，自行命名為「MinerU PDF 轉 Markdown」。
+
+停止與未完成結果
+----------------
+若需立即停止，可雙擊 stop-web.cmd。
+網頁關閉時正在進行的轉換會中止，不會等待整份財報完成；CPU／模型原生執行緒可能需要強制結束。
+本次服務使用獨立 Windows Job Object，只清理該服務與其子程序，不掃描或終止其他 Python。
+每次轉換狀態保存在 .web_runtime\runs\，狀態 running、failed、interrupted 不能當成成功結果。
+completed_needs_review 只代表原轉換函式完成，內容仍需人工檢查；不是 OCR 準確保證。
+中止時可能保留 output 裡的部分檔案，不自動刪除；請配合狀態紀錄核對，不使用中止結果當正式成果。
+程式意外停止時，下一次啟動會補標同一工具先前尚未結束的轉換為中止。
+
+關閉判斷的限制
+--------------
+以瀏覽器 WebSocket 連線判斷，不依賴背景分頁的 JavaScript 計時器。
+瀏覽器崩潰或斷線可能需要一段時間才被系統偵測，之後才開始 30 秒緩衝。
+重新整理超過 30 秒、電腦睡眠／休眠等情況，服務可能已停止；再次雙擊啟動即可。
+如果啟動後一直沒有任何工具分頁連上，180 秒後停止，避免背景遺留。
+關閉瀏覽器分頁之前，應先下載需要保留的結果。
+
+錯誤與診斷
+----------
+錯誤訊息：.web_runtime\last_error.txt
+每次服務日誌：.web_runtime\logs\
+目前狀態：.web_runtime\state.json（含本機控制權杖，請勿公開分享）
+若 7860 埠已被其他程式使用，會回報啟動錯誤，不會終止占用者或擅自更換網址。
+
+原本設定與資料
+--------------
+仍使用現有 .venv、mineru-env.ps1、.cache 及 output；未重新安裝依賴，OCR、公式及表格選項維持原樣；頁面選擇已改為起始／結束頁。
+本機 Python 3.11.9；CPU；MINERU_MIN_BATCH_INFERENCE_SIZE=1。
+已安裝 pipeline、gradio、api，未安裝本機 VLM 推理功能；使用 pipeline。
+原始啟動檔與使用說明的備份位於 .launcher_backups/。
+convert-sample.cmd 的原用法維持不變。
+
+維護與測試
+----------
+mineru_web_launcher.py 是啟動與壽命管理層；頁面範圍功能調整於 mineru/cli/gradio_app.py，使用底層現有的起訖頁參數。
+start-web.cmd → start-web.vbs → start-web.ps1 → pythonw 背景管理程式。
+管理程式先將工作程序加入獨立程序群組，再允許它載入 MinerU。
+測試：.venv\Scripts\python.exe -B -X utf8 test_launcher.py
+測試使用模擬狀態與受控程序，不代表已驗證真實財報 OCR 品質。
+
+指定頁面範圍
+------------
+起始頁預設 1；結束頁留空代表最後一頁。兩個邊界都包含在轉換範圍內。
+例如起始 2、結束 3，只處理原 PDF 第 2、3 頁；起始 1、結束留空則處理整份。
+這是 PDF 實體頁序，不是紙面印刷的頁碼；起始不能小於 1、不能大於結束，結束不能超過總頁數。
+輸出名稱包含 p起始-結束；壓縮檔內新增 page_range.json，對照切片頁序、MinerU 的 page_idx 與原 PDF 實體頁序。
+MinerU 原有 Markdown 不會因此自動加入原 PDF 頁序標記；來源頁序請搭配 page_range.json 核對。
+頁面測試：.venv\Scripts\python.exe -B -X utf8 test_page_range.py
+測試包含真實 PDF 切片及模擬 OCR，並未宣稱 OCR 辨識品質已通過。

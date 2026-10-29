@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="app-token" content="__SESSION_TOKEN__">
+  <title>財報研究室 · 本機工作區</title>
+  <link rel="stylesheet" href="/style.css"><script src="/api-settings.js" defer></script><script src="/app.js" defer></script><script src="/evaluation.js" defer></script><script src="/saved-rerank.js" defer></script>
+</head>
+<body>
+<div class="app-shell">
+  <aside class="sidebar">
+    <a class="brand" href="#query" aria-label="財報研究室首頁"><span class="brand-mark">F<span>↗</span></span><span>財報研究室<small>FINANCIAL WORKSPACE</small></span></a>
+    <div class="workspace-tag"><span class="dot"></span> 本機工作區 <span class="tag">RAG</span></div>
+    <nav aria-label="主要功能">
+      <p class="nav-label">資料準備</p>
+      <button class="nav-button" data-page="prepare"><span class="nav-icon">▤</span>前處理</button>
+      <button class="nav-button" data-page="database"><span class="nav-icon">▦</span>向量資料庫</button>
+      <p class="nav-label">研究與設定</p>
+      <button class="nav-button active" data-page="query"><span class="nav-icon">⌕</span>問答系統</button>
+      <button class="nav-button" data-page="api"><span class="nav-icon">⚙</span>API 金鑰</button>
+      <button class="nav-button" data-page="history"><span class="nav-icon">◷</span>執行紀錄</button>
+    </nav>
+    <div class="sidebar-bottom"><span class="local-symbol">⌂</span><div>資料在本機管理<small>沿用既有檔案與索引</small></div></div>
+  </aside>
+  <main>
+    <header class="topbar"><div><span class="muted">工作區</span><span class="slash">/</span><span id="breadcrumb">查詢與問答</span></div><div class="top-actions"><button type="button" id="open-api-settings" class="secondary-button">API 設定／金鑰</button><button type="button" id="shutdown-service" class="secondary-button">關閉服務</button><span class="status-pill" id="connection-status">載入中</span><button class="icon-button" id="refresh" title="重新整理資料" aria-label="重新整理資料">↻</button></div></header>
+    <div class="main-content">
+      <div id="alert" class="alert hidden" role="alert"></div>
+      <section id="job-panel" class="job-panel hidden" aria-live="polite"><div class="job-heading"><div><span class="eyebrow">目前工作</span><h2 id="job-title">正在處理</h2></div><span id="job-status" class="status-pill">執行中</span></div><div class="activity-track"><div></div></div><p id="job-description">請保持本機服務開啟。你可以切換頁籤查看其他資料。</p><details><summary>查看處理進度</summary><ol id="job-events"></ol></details></section>
+
+      <section id="page-prepare" class="page hidden">
+        <div class="page-heading"><div><span class="eyebrow">PREPARATION</span><h1>前處理</h1><p>從 PDF 轉換、整理與加標籤，到第四階段切分。</p></div></div>
+      </section>
+      <section id="page-database" class="page hidden">
+        <div class="page-heading"><div><span class="eyebrow">VECTOR STORE</span><h1>向量資料庫</h1><p>建立索引、查看財報片段，或勾選預覽刪除資料。</p></div></div>
+      </section>
+      <div id="workspace-host" class="hidden"><iframe id="workspace-frame" title="前處理與向量資料庫工作面板"></iframe></div>
+      <section id="page-api" class="page hidden">
+        <div class="page-heading"><div><span class="eyebrow">API SETTINGS</span><h1>API 金鑰</h1><p>管理建庫、重排序及 Gemini／GPT 回答設定。</p></div></div>
+        <div id="api-settings-host" class="card form-card"></div>
+      </section>
+      <section id="page-query" class="page">
+        <div class="page-heading"><div><span class="eyebrow">RESEARCH</span><h1>查詢與問答</h1><p>從財報片段找到依據，再逐步核對答案。</p></div><div class="index-stat"><strong id="index-count">—</strong><span>可用索引</span></div></div>
+        <div class="query-grid">
+          <form id="query-form" class="card query-form">
+            <div class="card-title"><h2>設定這次查詢</h2><span class="tiny-label">單題操作</span></div>
+            <!-- EXPERIMENT_ONLY：Excel入口可移除，一般問答保留。 -->
+            <label class="field" id="evaluation-mode-field" hidden>輸入方式<select id="evaluation-mode"><option value="single">單題輸入</option><option value="excel">Excel 批次測試</option></select></label>
+            <section id="evaluation-upload" hidden>
+              <label class="checkbox"><input id="evaluation-generate-curves" type="checkbox"><span>執行後製作原始／加權圖表與統計表（可事後製作）</span></label>
+              <label class="field">上傳問題集（.xlsx）<input id="evaluation-file" type="file" accept=".xlsx"></label>
+              <label class="field" id="evaluation-sheet-field" hidden>工作表<select id="evaluation-sheet"></select></label>
+              <p class="scope-note">Question作查詢；Years與Doc_Id股號作可選篩選。Answer不送入模型。排除ID：26、88、95、102、113。</p>
+              <p id="evaluation-preview-status" role="status">選擇檔案後可勾選題目並展開查看。</p>
+              <label class="checkbox"><input id="evaluation-select-all" type="checkbox"><span>全選有效題目</span></label>
+              <div id="evaluation-questions" class="evaluation-question-list"></div>
+            </section>
+            <label class="field">你的問題<textarea id="query-question" rows="5" maxlength="8000" placeholder="例如：公司應付公司債有哪些發行條件？" required></textarea></label>
+            <fieldset class="mode-fieldset"><legend>執行到哪個階段？</legend><div class="mode-options">
+              <label><input type="radio" name="mode" value="retrieve"><span><b>01</b>只排序<small>查看召回片段</small></span></label>
+              <label><input type="radio" name="mode" value="rerank"><span><b>02</b>重排序<small>Voyage 精選</small></span></label>
+              <label><input type="radio" name="mode" value="answer" checked><span><b>03</b>完整回答<small>LLM 回答</small></span></label>
+            </div></fieldset>
+            <div class="field-row"><label class="field">Embedding 模型<select id="query-backend"><option value="bge">BGE-M3</option><option value="voyage">voyage-finance-2</option></select></label><label class="field">切分模式<select id="query-chunk-mode"><option value="original">original</option><option value="parent_child">parent_child</option><option value="legacy">舊版／未記錄</option></select></label></div><label class="field">選擇索引<select id="query-index" required><option value="">正在讀取索引…</option></select></label>
+            <details id="query-history-single" class="index-history-folder"><summary id="query-history-summary">歷史索引</summary><label class="field">選擇歷史索引<select id="query-history-index"><option value="">請選擇…</option></select></label><p class="muted">歷史索引保留可用；選取後會取代上方目前索引。</p></details>
+            <label class="checkbox"><input id="query-multiple" type="checkbox"><span>複選索引，各自執行並比較</span></label>
+            <div id="query-index-list" class="evaluation-question-list" hidden></div>
+            <div class="scope-note" id="index-description">只搜尋已完成建庫的文件。</div>
+            <div class="field-row" id="query-scope-fields"><label class="field">股票代號 <span class="optional">選填</span><input id="query-stock" inputmode="numeric" pattern="[0-9]+" placeholder="例如 2330"></label><label class="field">內容年度（years） <span class="optional">選填</span><input id="query-year" type="number" min="1900" max="2199" placeholder="例如 2025"></label></div>
+            <details class="query-advanced"><summary>模型與檢索詳細設定</summary>
+            <label class="field" id="query-embedding-profile-field" hidden>檢索使用的API設定<select id="query-embedding-profile"></select></label>
+            <label class="checkbox" id="query-use-rerank-field"><input id="query-use-rerank" type="checkbox" checked><span>完整回答前使用重排序（可取消略過）</span></label><div class="field-row"><label class="field" id="query-rerank-profile-field">重排序設定<select id="query-rerank-profile"></select></label><label class="field" id="query-answer-profile-field">LLM 回答設定<select id="query-answer-profile"></select></label></div>
+            <label class="checkbox"><input id="query-heading-parent" type="checkbox"><span>父子切法檢索後額外帶回標題父項（原始切法不適用；內文／跨頁表格必回規則依各切法保留）</span></label>
+            <div class="field-row"><label class="field">向量檢索數量<input id="query-topk" type="number" min="1" max="1000" value="50" required></label><label class="field" id="rerank-count-field">證據數量／重排序保留數量<input id="query-rerank" type="number" min="1" max="1000" value="10" required></label></div>
+            </details>
+            <label class="checkbox" hidden><input id="query-export" type="checkbox" checked><span>保存批次測報（Excel／JSON／Markdown）</span></label>
+            <p class="service-note" id="service-note">完整回答使用所選重排序與LLM設定。</p>
+            <button class="primary-button submit-action" type="submit">開始查詢 <span>↗</span></button>
+          </form>
+          <section class="card results-card" aria-label="查詢結果"><div class="results-heading"><h2>研究結果</h2><span id="result-status" class="tiny-label">等待查詢</span></div><div id="result-empty" class="empty-state"><div class="empty-mark">⌕</div><h3>從一個問題開始</h3><p>選擇索引與執行模式，<br>在這裡查看答案、來源與排序過程。</p><div class="flow-mini"><span>檢索</span><i>→</i><span>重排</span><i>→</i><span>答案</span></div></div>
+            <div id="index-comparison" hidden></div><div id="query-result" class="hidden"><div class="result-tabs" role="tablist" aria-label="結果類型"><button type="button" class="active" data-result-tab="summary" role="tab" aria-selected="true">結果摘要</button><button type="button" data-result-tab="retrieval" role="tab" aria-selected="false">召回片段</button><button type="button" data-result-tab="rerank" role="tab" aria-selected="false">重排序</button><button type="button" data-result-tab="usage" role="tab" aria-selected="false">用量與設定</button></div><div id="result-context" class="result-context"></div><div id="result-content" class="markdown-content"></div><div id="result-downloads" class="download-row"></div></div>
+            <div id="evaluation-result" class="markdown-content" hidden></div>
+          </section>
+        </div>
+      </section>
+
+      <section id="page-history" class="page hidden">
+        <div class="page-heading"><div><span class="eyebrow">ACTIVITY</span><h1>執行紀錄</h1><p>閱讀既有 Markdown 報告，核對每次操作的來源與結果。</p></div><button id="history-refresh" class="secondary-button">重新整理 ↻</button></div>
+        <div class="history-tabs"><button class="active" data-history-tab="qa">問答紀錄</button><button data-history-tab="index">建庫紀錄</button></div>
+        <div id="history-qa" class="history-grid"><section class="card report-list" aria-label="問答紀錄列表"><h2>最近紀錄</h2><div id="report-list"></div></section><section class="card report-view"><div id="report-downloads" class="download-row"></div><!-- EXPERIMENT_ONLY：舊報告重排序入口，與一般問答分開。 -->
+<div id="saved-rerank-panel" hidden>
+<h2>舊報告重排序</h2><p id="saved-rerank-source"></p>
+<p class="muted">沿用原命中ID，從雜湊相符的chunk JSON還原子項全文，按chunk_id排序送所選BGE／Voyage重排序模型；先取TopK子項，再帶回必回父項並去重，不補選。只補輸出標籤，不重新embedding、檢索或回答。原排名缺失處標未知，另存結果。</p>
+<div class="field-row"><label class="field">重排序設定<select id="saved-rerank-profile"></select></label><label class="field">保留子項數<input id="saved-rerank-count" type="number" min="1" max="1000" value="10"></label></div>
+<label class="checkbox" id="saved-rerank-charts-field"><input id="saved-rerank-charts" type="checkbox"><span>製作原始／加權圖表與統計表</span></label>
+<label class="checkbox"><input id="saved-rerank-all" type="checkbox" checked><span>全選可重排序的題目</span></label>
+<details><summary>查看／勾選題目</summary><div id="saved-rerank-questions"></div></details>
+<p id="saved-rerank-status" role="status"></p><button id="saved-rerank-start" type="button" class="primary-button submit-action">使用此報告開始重排序</button>
+</div><div id="report-content" class="markdown-content"><div class="empty-state"><h3>選擇一份紀錄</h3><p>直接閱讀 Markdown，無需查看 JSON。</p></div></div></section></div><section id="history-index" class="card operation-result hidden"></section>
+      </section>
+      <footer class="page-footer"><span>完整財報分析器 · 實驗工作區</span><span>金鑰由本機 API 設定管理</span></footer>
+    </div>
+  </main>
+</div>
+</body>
+</html>

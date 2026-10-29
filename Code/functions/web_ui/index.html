@@ -1,0 +1,298 @@
+<!doctype html>
+
+<html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+
+<title>完整財報 · 資料處理工作台</title>
+
+<style>
+
+.api-simple-slot{border-top:1px solid #dfe6df;padding:18px 0;max-width:650px}.api-simple-slot label{display:block;margin:12px 0}.api-simple-slot input,.api-simple-slot select{display:block;width:100%;box-sizing:border-box;margin-top:6px}
+
+:root{font-family:"Microsoft JhengHei",system-ui,sans-serif;color:#20352e;background:#f4f6f3}*{box-sizing:border-box}body{margin:0}header{padding:28px 5%;background:#183e33;color:white;display:flex;justify-content:space-between;align-items:center}header small{color:#b9d8c9;letter-spacing:2px}h1{font-size:26px;margin:8px 0}button,input,select{font:inherit}button{cursor:pointer;border:1px solid #ccd7d0;border-radius:8px;padding:10px 16px;background:white;color:#234638}button:hover{background:#e9f1ea}button:disabled{opacity:.5;cursor:not-allowed}main{max-width:1200px;margin:26px auto;padding:0 24px}.steps{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:24px}.step{text-align:left;padding:18px}.step strong{display:block;margin-bottom:8px}.step.active{background:#23664d;color:white;border-color:#23664d}.step span{font-size:13px}.panel{background:white;border:1px solid #dfe6df;border-radius:12px;padding:24px;margin-bottom:20px}h2{font-size:20px;margin:0 0 10px}p{line-height:1.7}.muted{color:#65756b;font-size:14px}.toolbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:18px 0}input[type=search],select{padding:11px;border:1px solid #c8d4cb;border-radius:8px}input[type=search]{flex:1;min-width:180px}input[type=checkbox]{width:18px;height:18px;accent-color:#23664d;vertical-align:middle;margin-right:9px}.tablewrap{max-height:340px;overflow:auto;border:1px solid #e0e7e0;border-radius:8px}table{border-collapse:collapse;width:100%;text-align:left}th{background:#edf2ed;position:sticky;top:0}th,td{padding:13px;border-bottom:1px solid #e7ece7}td:first-child{word-break:break-word}tbody tr:hover{background:#f6f9f5}.actions{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-top:20px}.primary{background:#23664d;color:white;border-color:#23664d}.primary:hover{background:#194e3a}.notice{background:#fff6df;padding:12px 16px;border-radius:8px;color:#6f5017}.message{color:#9b352a;white-space:pre-wrap}progress{width:100%;height:14px;accent-color:#23664d}.result{padding:12px 0;border-bottom:1px solid #e7ece7;overflow-wrap:anywhere}.result b{display:block}.result span{font-size:14px}.badge{font-size:13px;color:#d7ebdf}#status{font-weight:bold}a{color:inherit}@media(max-width:700px){.steps{grid-template-columns:1fr 1fr}header{padding:20px}main{padding:0 12px}.panel{padding:18px}header h1{font-size:20px}}
+
+
+
+[hidden]{display:none!important}
+
+details{border-top:1px solid #e7ece7;padding-top:14px;margin-top:16px}summary{cursor:pointer;color:#345b49;font-weight:600}summary:focus-visible{outline:2px solid #23664d;outline-offset:5px}
+
+.parameter{margin:20px 0}.parameter>label{display:block;margin-bottom:8px}.parameter-controls{display:flex;gap:16px;align-items:center;max-width:650px}.parameter-controls input[type=range]{flex:1;min-width:100px;accent-color:#23664d}.parameter-controls input[type=number]{width:110px;padding:8px;border:1px solid #c8d4cb;border-radius:8px}.parameter small{display:block;color:#65756b;margin-top:7px}
+
+.selection-main{justify-content:space-between}.selection-main>div{display:flex;gap:10px;flex-wrap:wrap}#picked{max-height:160px;overflow:auto;overflow-wrap:anywhere;font-size:13px}.actions .muted{flex-basis:100%}.result details{margin:8px 0;border:0;padding:0}.result details p{margin:8px 0}#statusPanel:empty{display:none}
+
+
+
+.api-settings-dialog{width:min(850px,94vw);max-height:90vh;overflow:auto;border:1px solid #c8d4cb;border-radius:12px;padding:24px;color:#20352e;background:white}.api-settings-heading{display:flex;justify-content:space-between;align-items:center;gap:16px}.api-settings-dialog input,.api-settings-dialog select{max-width:100%;padding:8px;border:1px solid #c8d4cb;border-radius:6px}.api-settings-dialog p{line-height:1.7;overflow-wrap:anywhere}.api-settings-dialog button{margin-left:8px}.api-settings-dialog::backdrop{background:#10251d80}
+
+
+
+.db-tree{max-height:540px;overflow:auto;border:1px solid #dfe6df;border-radius:8px;padding:12px}.db-folder{margin:8px 0 8px 18px;padding:8px;border:0;border-left:2px solid #e0e7e0}.db-folder>summary{display:list-item;overflow-wrap:anywhere}.db-folder>summary small{margin-left:14px}.db-folder>p{font-size:13px;color:#65756b}.db-file{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin:8px 0 8px 24px;padding:8px;border-bottom:1px solid #edf2ed}.db-file label{flex:1;min-width:180px;overflow-wrap:anywhere}.db-file small{font-size:13px;color:#65756b}.db-file button{padding:6px 12px}#dbPreview{overflow-wrap:anywhere}#dbPreview ul{padding-left:24px}
+
+</style></head><body>
+
+<header><div><small>FINANCIAL REPORT WORKSPACE</small><h1>完整財報 · 資料處理工作台</h1><span class="badge">本機執行 ／ 實驗階段</span></div><button type="button" onclick="openApiSettings()">API 設定／金鑰</button><button id="shutdown">關閉服務</button></header>
+
+<main><nav class="steps" aria-label="處理階段">
+
+<button class="step active" data-stage="raw"><strong>01　PDF → Markdown</strong><span>目錄選頁與財報轉換</span></button>
+
+<button class="step" data-stage="processed"><strong>02　整理 Markdown</strong><span>本機補標題與清頁碼</span></button>
+
+<button class="step" data-stage="tagged"><strong>03　加上標籤</strong><span>章節階層與內容邊界</span></button>
+
+<button class="step" data-stage="chunk"><strong>04　切分 chunk</strong><span>輸出 Markdown 與 JSON</span></button>
+
+<button class="step" data-stage="embed"><strong>05　向量建庫</strong><span>Chunk JSON → Chroma</span></button>
+
+</nav><section class="panel" id="pipelineOptions"><h2>執行範圍</h2><div class="toolbar"><label>起始階段<select id="pipelineStart"><option value="raw">1　PDF → Markdown</option><option value="processed">2　整理 Markdown</option><option value="tagged">3　加上標籤</option><option value="chunk">4　切分 chunk</option><option value="embed">5　向量建庫</option></select></label><label>結束階段<select id="pipelineEnd"><option value="raw">1　PDF → Markdown</option><option value="processed">2　整理 Markdown</option><option value="tagged">3　加上標籤</option><option value="chunk">4　切分 chunk</option><option value="embed">5　向量建庫</option></select></label></div><label id="pipelineFinalOnlyLabel" hidden><input type="checkbox" id="pipelineFinalOnly">只保留最終階段產物（成功後清理本次中間產物，Record 紀錄保留；失敗時保留）</label><p id="pipelineHelp" class="muted">同一階段只執行一次；跨階段會依序銜接本次輸出，中途失敗即停止。</p></section><section class="panel"><h2 id="heading">選擇 PDF 檔案</h2><p id="description" class="muted"></p>
+
+<div class="toolbar"><input type="search" id="search" placeholder="搜尋檔名或資料夾…" aria-label="搜尋資料"><button id="refresh">更新清單</button></div>
+
+<div class="toolbar selection-main"><div><button id="selectAll" title="選取目前階段全部有效檔案，包含所有子資料夾及篩選外資料">全選資料夾</button><button id="clearAll">取消選取</button></div><span id="count" class="muted"></span></div>
+
+<details id="selectionTools"><summary>更多選取操作</summary><div class="toolbar"><select id="selectionFilter" aria-label="顯示篩選"><option value="all">全部資料</option><option value="selected">只看已勾選</option><option value="unselected">只看未勾選</option></select><button id="selectVisible">勾選篩選結果</button><button id="clearVisible">取消篩選結果</button><button id="expandAll">展開全部資料夾</button><button id="collapseAll">收合全部資料夾</button></div><p class="muted">勾選資料夾會包含所有子資料夾的有效檔案；半勾代表部分選取。</p></details>
+
+<div class="tablewrap"><table><thead><tr><th scope="col">選擇／名稱</th><th scope="col">文件數</th></tr></thead><tbody id="rows"></tbody></table></div>
+
+<details id="selectionSummary" hidden><summary>已選檔案明細</summary><p id="picked" class="muted"></p></details>
+
+<p id="parserOption"><label>PDF解析器 <select id="pdfParser"><option value="docling">Docling（HTML表格）</option><option value="inspector">pdf-inspector 試驗模式（| 表格）</option></select></label><small class="muted"> 目錄沿用Docling，inspector處理後續整頁；啟用OCR後，需OCR或空白頁回退Docling。兩種表格格式皆可接續後續階段。</small></p><p id="ocrOption"><label><input type="checkbox" id="ocr" __OCR_CHECKED__>啟用 OCR</label><span class="muted">　需要辨識影像文字時使用</span></p>
+
+<details id="pdfOptions"><summary>進階設定</summary><div class="toolbar"><label id="ocrScaleOption">OCR 放大倍率 <input id="ocrScale" type="number" min="0" step="any" value="__OCR_SCALE__" aria-label="OCR 放大倍率" style="width:90px"></label><label>表格辨識 <select id="tableMode"><option value="accurate">ACCURATE（精確）</option><option value="fast">FAST（快速）</option></select></label></div></details>
+
+<div id="chunkOptions" hidden><p>切塊模式</p><div class="toolbar" role="group" aria-label="切塊模式"><button id="originalMode" type="button" aria-pressed="true" class="primary">原本切法</button><button id="parentChildMode" type="button" aria-pressed="false">父子切法</button></div>
+
+<div class="toolbar"><label>文字 chunk 的 embedding 脈絡 <select id="textEmbeddingMode"><option value="body">純正文</option><option value="description">正文＋說明</option><option value="full">正文＋小標／小標題＋說明</option></select></label><label>表格 chunk 的 embedding 脈絡 <select id="tableEmbeddingMode"><option value="body">純表格</option><option value="description">表格＋說明</option><option value="full">表格＋小標／小標題＋說明</option></select></label></div><p class="muted">完整模式加入 Sub_Section、Note_Title 與說明，不額外加入 Main_Section、年度或股票代號。原文與表頭中的年度保留；文字／表格設定分開，檔名與索引依這組設定分開。</p>
+
+<details id="chunkAdvanced"><summary>進階設定</summary>
+
+<div class="parameter" id="parentLimitParameter"><label for="parentLimit">Parent 字數上限</label><div class="parameter-controls"><input id="parentRange" type="range" min="1" max="__PARENT_SLIDER_MAX__" step="1" value="__PARENT_LIMIT__" aria-label="Parent 字數上限滑桿"><input id="parentLimit" type="number" min="1" step="1" value="__PARENT_LIMIT__"><span>字</span></div><small id="parentOver" hidden></small></div>
+
+<div class="parameter"><label for="recursiveThreshold">一般 Chunk 切分門檻</label><div class="parameter-controls"><input id="thresholdRange" type="range" min="1" max="__THRESHOLD_SLIDER_MAX__" step="1" value="__RECURSIVE_THRESHOLD__" aria-label="一般 Chunk 切分門檻滑桿"><input id="recursiveThreshold" type="number" min="1" step="1" value="__RECURSIVE_THRESHOLD__"><span>字</span></div><small id="thresholdOver" hidden></small></div>
+
+<div class="parameter" id="childTargetParameter"><label for="childTarget">Child 目標字數</label><div class="parameter-controls"><input id="childRange" type="range" min="1" max="__CHILD_SLIDER_MAX__" step="1" value="__CHILD_TARGET__" aria-label="Child 目標字數滑桿"><input id="childTarget" type="number" min="1" step="1" value="__CHILD_TARGET__"><span>字</span></div><small id="childOver" hidden></small></div>
+
+<p class="muted" id="chunkModeHelp">依模式顯示切分規則；滑桿外可直接輸入數字。</p>
+
+</details></div>
+
+<div id="embeddingOptions" hidden><div class="toolbar"><label>索引操作 <select id="indexAction"><option value="new">新建索引</option><option value="batch">批次建立獨立索引</option><option value="existing">加入既有索引</option></select></label><label id="indexNameLabel">索引名稱 <input id="indexName" maxlength="80" placeholder="例如：Inspector 父子250 第一次"></label><label id="existingIndexLabel" hidden>既有索引 <select id="existingIndex"><option value="">請先更新索引清單</option></select></label><button id="refreshBuildIndexes" type="button">更新索引清單</button></div><p class="muted">批次建立：名稱作為前綴，依切法、字數、標籤模式及處理版本分組，依序建立獨立索引，共用一次模型載入。同組同名財報不可重複勾選。新建索引會獨立保存，即使設定或名稱相同也不合併；加入既有索引時，相同資料略過，不同版本不覆寫。每個索引只接受同一模型、切法、字數及處理版本。</p><div class="toolbar"><label>Embedding 模型 <select id="embeddingBackend"><option value="bge">BGE-M3（本機CPU）</option></select></label><label id="embeddingSourceModeLabel">切分模式 <select id="embeddingMode"><option value="original">original 原本切法</option><option value="parent_child">parent_child 父子切法</option><option value="legacy">舊版平面批次</option><option value="all">全部切法（批次比較）</option></select></label></div><label><input type="checkbox" id="embeddingCheck">只檢查 token，不建庫</label><label id="voyageEnable" hidden><input type="checkbox" id="embeddingVoyage">明確啟用 Voyage API（會外傳選定內容）</label><p class="muted">直接讀取chunk JSON，前處理在記憶體完成，不另存prepared檔。不同模型、切法及參數分開索引。BGE首次使用可能下載權重。建庫期間需等待完成，以免中斷索引提交。</p></div>
+
+<div class="actions"><button class="primary" id="run">執行已選檔案</button><button id="cancel" hidden>取消目前工作</button><button id="openOutput" hidden>開啟輸出資料夾</button></div>
+
+<p id="error" role="alert" class="message"></p></section>
+
+<section id="statusPanel" class="panel" aria-live="polite" hidden><h2>執行狀態</h2><p id="status">尚未執行</p><progress id="progress" value="0" max="1"></progress><p id="current" class="muted"></p><div id="pageProgressGroup" hidden><p id="pageProgressText" class="muted"></p><progress id="pageProgress" value="0" max="1"></progress></div><div id="embeddingStop" hidden><label>結束位置 <select id="embeddingStopAfter"><option value="">完成目前文件後停止</option></select></label> <button id="embeddingStopButton">設定結束工作</button><p id="embeddingStopStatus" class="muted"></p></div><div id="pipelineSummary" hidden></div><div id="results"></div></section>
+
+<section id="databasePanel" class="panel" hidden><h2>資料庫管理</h2><p class="muted">目前使用的兩組顯示在外，其餘收進「歷史索引」，展開後可勾選「模型 → 切法 → 索引集合 → 財報」。勾選群組會選取目前清單內所有子項；不同集合的同名財報分開計算。清冊可列出不代表受損索引已恢復。</p><div class="toolbar"><button id="dbRefresh">更新清單</button><button id="dbExpand">全部展開</button><button id="dbCollapse">全部收合</button></div><div class="toolbar"><label>財報識別 <input id="dbDoc" placeholder="doc_id／檔名識別"></label><label>股票代號 <input id="dbStock" placeholder="例如2330"></label><label>內容年度 <input id="dbYear" type="number" min="1900" max="2199" placeholder="years"></label><button id="dbFilter">套用篩選</button></div><p id="dbCount" role="status">已選 0 份財報／目前清單 0 份</p><div id="dbDocuments" class="db-tree"></div><div class="toolbar"><button id="dbSelect">勾選目前清單全部</button><button id="dbClear">取消全部勾選</button><button id="dbDelete" disabled>預覽刪除所選財報</button><button id="dbDeleteCollection" disabled>預覽移除整個集合</button></div><p class="muted">索引損壞無法刪單份財報時，可勾選集合內全部財報，再預覽移除整個集合；此操作包含該集合全部向量，無法透過本介面還原。不同集合分開處理。</p><p id="dbMessage" role="status" class="message"></p><div id="dbPreview" class="notice" hidden></div><div class="toolbar"><button id="dbConfirm" disabled>確認刪除</button><button id="dbCancelPreview">取消預覽</button></div><div id="dbChunks"></div></section>
+
+<details><summary>使用說明</summary><p class="muted">關閉分頁不會停止工作。執行中請按「取消目前工作」停止；使用完畢可按「關閉服務」。取消會保留先前已完成的檔案。</p></details>
+
+</main><script src="/selection.js"></script><script>
+
+const token='__TOKEN__', $=id=>document.getElementById(id);
+
+window.financialUiToken=token;
+
+window.addEventListener('api-settings-changed',event=>{const select=$('embeddingBackend'),old=select.value;select.replaceChildren();const bge=document.createElement('option');bge.value='bge';bge.textContent='BGE-M3（本機CPU）';select.append(bge);for(const p of event.detail.profiles.filter(p=>p.purpose==='embedding'&&p.configured)){const option=document.createElement('option');option.value=p.id;option.textContent=p.name+' · '+p.model;select.append(option);}select.value=[...select.options].some(o=>o.value===old)?old:'';$('voyageEnable').hidden=select.value==='bge';});
+
+let stage='raw', data={}, busy=false, stopped=false, cancelPending=false, lastState={}, chunkMode='__CHUNK_MODE__';
+
+const selections={raw:new Set(),processed:new Set(),tagged:new Set(),chunk:new Set(),embed:new Set()};
+
+const expanded={raw:new Set(),processed:new Set(),tagged:new Set(),chunk:new Set(),embed:new Set()};
+
+const names={raw:'PDF → Markdown',processed:'整理 Markdown',tagged:'加上標籤',chunk:'切分 chunk',embed:'向量建庫'};
+
+const descriptions={raw:'選擇要轉換的 PDF，可勾選資料夾或個別檔案。',processed:'來源：markdown_raw。選擇要整理的 Markdown。',tagged:'來源：markdown_processed。選擇要加標籤的 Markdown。',chunk:'來源：markdown_tagged。選擇檔案及切塊模式。',embed:'來源：markdown_chunk。選擇切分模式、模型及JSON建立索引。'};
+const pipelineOrder=['raw','processed','tagged','chunk','embed'];
+function pipelineStages(){const end=$('pipelineEnd').value||stage;return pipelineOrder.slice(pipelineOrder.indexOf(stage),pipelineOrder.indexOf(end)+1);}
+function updatePipelinePanels(){
+ const phases=pipelineStages();$('pipelineFinalOnlyLabel').hidden=phases.length<2;if(phases.length<2)$('pipelineFinalOnly').checked=false;for(const option of $('pipelineEnd').options)option.disabled=pipelineOrder.indexOf(option.value)<pipelineOrder.indexOf(stage);
+ $('parserOption').hidden=!phases.includes('raw');$('ocrOption').hidden=!phases.includes('raw');$('pdfOptions').hidden=!phases.includes('raw');
+ $('chunkOptions').hidden=!phases.includes('chunk');$('embeddingOptions').hidden=!phases.includes('embed');$('embeddingSourceModeLabel').hidden=stage!=='embed';
+ $('pipelineHelp').textContent=phases.length>1?`從階段${pipelineOrder.indexOf(stage)+1}的來源開始，依序執行至階段${pipelineOrder.indexOf(phases.at(-1))+1}；只銜接本次輸出，任一階段失敗就停止。`:'只執行目前階段。若要連續處理，請選擇較後面的結束階段。';
+}
+$('pipelineStart').onchange=()=>changeStage($('pipelineStart').value);
+$('pipelineEnd').onchange=()=>{updatePipelinePanels();render();};
+
+
+let embeddingSources=[];
+
+function filterEmbeddingSources(){embeddingSources=data.embed||[];applyEmbeddingMode();}
+
+function applyEmbeddingMode(){const mode=$('embeddingMode').value;data.embed=embeddingSources.filter(r=>mode==='all'||(mode==='legacy'?!r.id.split('/').some(x=>['original','parent_child'].includes(x)):r.id.split('/').includes(mode)));}
+
+$('embeddingMode').onchange=()=>{selections.embed.clear();applyEmbeddingMode();render();};
+
+let buildIndexes=[];
+
+function renderBuildIndexes(){const current=$('existingIndex').value,backend=$('embeddingBackend').value==='bge'?'bge':'voyage',nameOf=index=>typeof dbCurrentIndexName==='function'?dbCurrentIndexName(index):'';
+ $('existingIndex').replaceChildren();const prompt=document.createElement('option');prompt.value='';prompt.textContent='請選擇既有索引';$('existingIndex').append(prompt);
+ const rows=buildIndexes.filter(r=>r.backend===backend&&!r.status);
+ for(const [label,items] of [['目前使用',rows.filter(nameOf)],['歷史索引',rows.filter(r=>!nameOf(r))]]){if(!items.length)continue;const group=document.createElement('optgroup');group.label=label;for(const index of items){const option=document.createElement('option');option.value=index.collection;option.textContent=`${nameOf(index)||index.display_name||index.collection} · ${index.signature.chunking?.mode||'舊版'} · ${index.signature.chunking?.recursive_threshold||'—'}字 · ${index.doc_ids.length}份`;group.append(option);}$('existingIndex').append(group);}
+ if([...$('existingIndex').options].some(o=>o.value===current))$('existingIndex').value=current;
+}
+  async function refreshBuildIndexes(){const result=await api('database',{action:'indexes'});buildIndexes=result.indexes;renderBuildIndexes();}
+
+$('indexAction').onchange=()=>{$('indexNameLabel').hidden=!['new','batch'].includes($('indexAction').value);$('existingIndexLabel').hidden=$('indexAction').value!=='existing';if($('indexAction').value==='existing')refreshBuildIndexes().catch(fail);if($('indexAction').value==='batch'){$('embeddingMode').value='all';applyEmbeddingMode();}render();};
+
+$('embeddingCheck').onchange=()=>render();
+
+$('refreshBuildIndexes').onclick=()=>refreshBuildIndexes().catch(fail);
+
+$('embeddingBackend').onchange=()=>{$('voyageEnable').hidden=$('embeddingBackend').value==='bge';renderBuildIndexes();};
+
+function durationText(seconds){if(!Number.isFinite(seconds)||seconds<0)return '未取得';if(seconds<60)return seconds.toFixed(2)+' 秒';const total=Math.round(seconds),hours=Math.floor(total/3600),minutes=Math.floor(total%3600/60),remaining=total%60;return hours?`${hours} 小時 ${minutes} 分 ${remaining} 秒`:`${minutes} 分 ${remaining} 秒`;}
+
+function runtimeConfigText(item){const c=item.runtime_config;if(!c)return '執行設定未取得';const threads=c.cpu_threads===null?'不適用':Number.isInteger(c.cpu_threads)?c.cpu_threads:'未取得';const batch=c.batch_size===null?'批次：不適用':Number.isInteger(c.batch_size)?(c.batch_unit==='pipeline'?`管線批次大小：${c.batch_size}`:`批次上限：${c.batch_size} chunk／批`):'批次：未取得';return `CPU 執行緒設定：${threads}；${batch}`;}
+
+function rawMetricText(item){if(item.elapsed_seconds===undefined)return '';const speed=item.pages_per_minute===null?'整份速度未計算（本次未完成）':`頁數 ${item.pdf_page_count??'未取得'} 頁／${item.pages_per_minute} 頁/分鐘`;let ocr;if(item.ocr_enabled===false||item.ocr_region_count==='disabled')ocr='OCR 未啟用';else if(item.ocr_region_count==='unavailable'||item.ocr_region_count===null)ocr='OCR 區域數未取得';else ocr=`OCR 區域 ${item.ocr_region_count} 個／${item.ocr_regions_per_minute??'未計算'} 個/分鐘`;const pages=Array.isArray(item.ocr_pages)?(item.ocr_pages.length?`；使用 OCR 的 PDF 頁：${item.ocr_pages.join('、')}`:'；沒有頁面使用 OCR'):'';return `處理耗時 ${durationText(item.elapsed_seconds)}；${speed}；${ocr}${pages}（速率以整份處理耗時計算）`;}
+
+function stageTimingText(item){if(!item.stage_timings)return '階段耗時未取得（舊紀錄或強制中止）';const labels={model_load:'模型載入',layout:'版面分析',ocr:'OCR',table_structure:'表格辨識',markdown_output:'Markdown 輸出'};return Object.entries(labels).map(([key,label])=>{const x=item.stage_timings.stages?.[key]||{};const value=x.status==='disabled'?'未啟用':Number.isFinite(x.seconds)?x.seconds.toFixed(2)+' 秒':'未取得';return label+'：'+value+(x.status==='partial'?'（部分）':'');}).join('；')+'。各階段可能重疊，不可直接加總。';}
+
+async function api(path,body){const r=await fetch('/api/'+path,{method:body===undefined?'GET':'POST',headers:{'X-UI-Token':token,'Content-Type':'application/json'},body:body===undefined?undefined:JSON.stringify(body)});const v=await r.json();if(!r.ok)throw Error(v.error||'操作失敗');return v;}
+
+function fail(e){$('error').textContent=e.message;}
+
+function visible(){return SelectionTree.visible(data[stage]||[],selections[stage],$('search').value,$('selectionFilter').value);}
+
+function render(){
+  updatePipelinePanels();
+
+  const rows=visible(),all=data[stage]||[],selected=selections[stage],forceOpen=Boolean($('search').value)||$('selectionFilter').value!=='all';
+
+  $('rows').replaceChildren();
+
+  function append(node,depth){
+
+    for(const folder of node.folders.values()){
+
+      const ids=SelectionTree.descendants(all,folder.path),state=SelectionTree.state(ids,selected),open=forceOpen||expanded[stage].has(folder.path);
+
+      const tr=document.createElement('tr'),td=document.createElement('td'),n=document.createElement('td'),label=document.createElement('label'),box=document.createElement('input'),toggle=document.createElement('button');
+
+      td.style.paddingLeft=(13+depth*24)+'px';toggle.type='button';toggle.textContent=open?'▾':'▸';toggle.style.padding='2px 7px';toggle.style.marginRight='8px';toggle.setAttribute('aria-expanded',String(open));toggle.setAttribute('aria-label',(open?'收合':'展開')+'資料夾 '+folder.path);toggle.disabled=forceOpen;
+
+      toggle.onclick=()=>{open?expanded[stage].delete(folder.path):expanded[stage].add(folder.path);render();};
+
+      box.type='checkbox';box.checked=state.checked;box.indeterminate=state.indeterminate;box.disabled=busy;box.setAttribute('aria-label','選取資料夾全部內容 '+folder.path);box.onchange=()=>{SelectionTree.set(ids,selected,box.checked);render();};
+
+      label.append(box,document.createTextNode('資料夾：'+folder.name));td.append(toggle,label);td.title=folder.path;n.textContent=`${state.count} / ${state.total} 個檔案`;tr.append(td,n);$('rows').append(tr);if(open)append(folder,depth+1);
+
+    }
+
+    for(const row of node.files){
+
+      const tr=document.createElement('tr'),td=document.createElement('td'),n=document.createElement('td'),label=document.createElement('label'),box=document.createElement('input');td.style.paddingLeft=(13+depth*24)+'px';
+
+      box.type='checkbox';box.checked=selected.has(row.id);box.disabled=busy;box.onchange=()=>{SelectionTree.set([row.id],selected,box.checked);render();};label.append(box,document.createTextNode(row.name));td.append(label);td.title=row.id;n.textContent='1';tr.append(td,n);$('rows').append(tr);
+
+    }
+
+  }
+
+  append(SelectionTree.tree(rows),0);
+
+  if(!rows.length){const tr=document.createElement('tr'),td=document.createElement('td');td.colSpan=2;td.textContent='沒有符合條件的檔案。請先準備來源或完成上一階段，再更新清單。';tr.append(td);$('rows').append(tr);}
+
+  $('selectionTools').hidden=!all.length;$('selectionSummary').hidden=!selected.size;$('clearAll').hidden=!selected.size;$('selectAll').hidden=!all.length;
+
+  $('embeddingStop').hidden=!(busy&&lastState.stage==='embed');
+
+  if(busy&&lastState.stage==='embed'){
+
+    const list=$('embeddingStopAfter'),old=list.value;
+
+    const files=(lastState.embedding_files||[]).slice(lastState.completed||0),key=JSON.stringify(files);
+
+    if(list.dataset.files!==key){
+
+      list.replaceChildren();
+
+      const first=document.createElement('option');first.textContent='完成目前文件後停止';first.value='';list.append(first);
+
+      for(const id of files){const option=document.createElement('option');option.textContent='完成 '+id.split('/').pop()+' 後停止';option.value=id;list.append(option);}
+
+      if([...list.options].some(x=>x.value===old))list.value=old;
+
+      list.dataset.files=key;
+
+    }
+
+    const supported=!!lastState.vector_job_id;
+
+    list.disabled=!supported||!!lastState.stop_requested;
+
+    $('embeddingStopButton').disabled=!supported||!!lastState.stop_requested;
+
+    $('embeddingStopStatus').textContent=!supported?'本批由舊版啟動，不能中途載入新停止功能；完成後重新啟動網站。':lastState.stop_requested?'已設定：'+(lastState.stop_after?'完成 '+lastState.stop_after.split('/').pop()+' 後停止':'完成目前文件後停止')+'；目前文件仍會完整提交。':'不強制中斷計算或索引提交，後續未開始文件不會建庫。';
+
+  }
+
+  $('cancel').hidden=!busy||lastState.stage==='embed';$('openOutput').hidden=busy||!lastState.output;$('statusPanel').hidden=!busy&&!lastState.stage;
+
+  $('progress').hidden=!busy;$('ocrScaleOption').hidden=!$('ocr').checked;
+
+  $('count').textContent=`已選 ${selected.size} 個檔案 ／ 篩選符合 ${rows.length} 個 ／ 共 ${all.length} 個`;$('picked').textContent=selected.size?'已選：'+[...selected].join('、'):'';$('run').textContent=stage==='embed'?($('embeddingCheck').checked?'檢查 token（不建立索引）':$('indexAction').value==='batch'?'批次建立獨立索引':$('indexAction').value==='new'?'新建索引並開始建庫':'加入既有索引並建庫'):'執行本階段';if(pipelineStages().length>1)$('run').textContent=`連續執行階段 ${pipelineOrder.indexOf(stage)+1} → ${pipelineOrder.indexOf($('pipelineEnd').value)+1}`;$('run').disabled=busy||!selected.size;$('shutdown').disabled=busy;$('cancel').disabled=!busy||cancelPending;for(const id of ['pipelineStart','pipelineEnd','pipelineFinalOnly','selectAll','selectVisible','clearVisible','clearAll','pdfParser','ocr','ocrScale','tableMode','originalMode','parentChildMode','textEmbeddingMode','tableEmbeddingMode','parentLimit','recursiveThreshold','childTarget','parentRange','thresholdRange','childRange','expandAll','collapseAll','selectionFilter','indexAction','indexName','existingIndex','refreshBuildIndexes','embeddingBackend','embeddingMode','embeddingCheck','embeddingVoyage','dbRefresh','dbFilter','dbSelect','dbClear','dbDelete','dbExpand','dbCollapse','dbConfirm','dbCancelPreview','dbDeleteCollection'])$(id).disabled=busy;
+
+  if(typeof dbUpdateActions==='function')dbUpdateActions();
+
+}
+
+function changeStage(value){stage=value;$('pipelineStart').value=value;$('pipelineEnd').value=value;document.querySelectorAll('.step').forEach(x=>x.classList.toggle('active',x.dataset.stage===stage));$('heading').textContent=stage==='raw'?'選擇 PDF 資料夾或檔案':'選擇來源資料夾或檔案';$('description').textContent=descriptions[stage];$('parserOption').hidden=stage!=='raw';$('ocrOption').hidden=stage!=='raw';$('pdfOptions').hidden=stage!=='raw';$('chunkOptions').hidden=stage!=='chunk';$('embeddingOptions').hidden=stage!=='embed';$('databasePanel').hidden=stage!=='embed';$('pdfOptions').open=false;$('chunkAdvanced').open=false;$('search').value='';$('selectionFilter').value='all';$('error').textContent='';render();if(stage==='embed'){dbRefresh().catch(dbError);refreshBuildIndexes().catch(fail);}}
+
+async function refresh(){try{data=await api('catalog');if(typeof refreshApiSettings==='function')await refreshApiSettings();filterEmbeddingSources();for(const s of Object.keys(selections)){const valid=new Set(data[s].map(x=>x.id));for(const id of selections[s])if(!valid.has(id))selections[s].delete(id);}render();}catch(e){fail(e);}}
+
+document.querySelectorAll('.step').forEach(x=>x.onclick=()=>changeStage(x.dataset.stage));
+
+$('search').oninput=render;$('selectionFilter').onchange=render;$('refresh').onclick=refresh;
+
+$('selectAll').onclick=()=>{SelectionTree.set((data[stage]||[]).map(x=>x.id),selections[stage],true);render();};
+
+$('selectVisible').onclick=()=>{visible().forEach(x=>selections[stage].add(x.id));render();};
+
+$('clearVisible').onclick=()=>{visible().forEach(x=>selections[stage].delete(x.id));render();};
+
+$('clearAll').onclick=()=>{selections[stage].clear();render();};
+
+$('expandAll').onclick=()=>{for(const row of data[stage]||[]){const parts=row.id.split('/');for(let i=1;i<parts.length;i++)expanded[stage].add(parts.slice(0,i).join('/'));}render();};
+
+$('collapseAll').onclick=()=>{expanded[stage].clear();render();};
+
+$('run').onclick=async()=>{if(busy)return;const phases=pipelineStages();const scale=Number($('ocrScale').value);if(phases.includes('raw')&&(!Number.isFinite(scale)||scale<=0))return fail(Error('OCR 放大倍率必須大於0'));busy=true;cancelPending=false;render();$('error').textContent='';try{const request={stage,end_stage:$('pipelineEnd').value,final_output_only:pipelineStages().length>1&&$('pipelineFinalOnly').checked,ids:[...selections[stage]],ocr:$('ocr').checked};if(phases.includes('raw')){request.pdf_parser=$('pdfParser').value;request.ocr_scale=scale;request.table_mode=$('tableMode').value;}if(phases.includes('embed')){const selected=$('embeddingBackend').value;const profile=apiReadyProfiles('embedding').find(p=>p.id===selected);if(selected!=='bge'&&!profile)throw Error('請選擇有效Embedding設定');request.backend=selected==='bge'?'bge':'voyage';request.embedding_profile=profile?.id||null;request.index_mode=$('indexAction').value;if(['new','batch'].includes(request.index_mode)){request.index_name=$('indexName').value.trim();if(!request.index_name)throw Error('請輸入索引名稱／批次名稱前綴');}else{request.collection=$('existingIndex').value;if(!request.collection)throw Error('請選擇既有索引');}request.check_only=$('embeddingCheck').checked;request.allow_voyage_api=$('embeddingVoyage').checked;if(request.backend==='voyage'&&!request.allow_voyage_api)throw Error('請先明確啟用Voyage API');}if(phases.includes('chunk')){request.chunk_mode=chunkMode;request.text_embedding_mode=$('textEmbeddingMode').value;request.table_embedding_mode=$('tableEmbeddingMode').value;for(const [key,id] of [['parent_limit','parentLimit'],['child_target','childTarget'],['recursive_threshold','recursiveThreshold']]){const value=Number($(id).value);if(!Number.isInteger(value)||value<1)throw Error('切塊字數須為正整數');request[key]=value;}}await api('run',request);await poll();}catch(e){busy=false;render();fail(e);}};
+
+$('cancel').onclick=async()=>{if(!busy||cancelPending)return;cancelPending=true;render();$('status').textContent='正在立即停止並清理未完成輸出…';try{await api('cancel',{});await poll();}catch(e){cancelPending=false;render();fail(e);}};
+
+$('embeddingStopButton').onclick=async()=>{if(!busy||lastState.stop_requested)return;try{await api('cancel',{after_file:$('embeddingStopAfter').value||null});await poll();}catch(e){fail(e);}};
+
+$('openOutput').onclick=()=>api('open-output',{stage:lastState.stage||stage}).catch(fail);
+
+$('shutdown').onclick=async()=>{try{await api('shutdown',{});stopped=true;$('statusPanel').hidden=false;$('progress').hidden=true;$('status').textContent='服務已關閉，可以關閉此分頁';document.querySelectorAll('button,input,select').forEach(x=>x.disabled=true);}catch(e){fail(e);}};
+
+async function poll(){if(stopped)return;try{const s=await api('state');lastState=s;busy=s.busy;cancelPending=s.state==='cancelling';const labels={idle:'尚未執行',running:'處理中',completed:'處理完成，結果待人工核對',completed_with_errors:'處理結束，部分項目未完整完成',failed:'執行失敗',stopped:'已在文件邊界停止；後續檔案未執行',cancelling:'正在停止並清理',cancelled:'已取消；後續檔案未執行',cancelled_with_cleanup_errors:'已停止，清理結果待確認'};$('status').textContent=(s.stage?names[s.stage]+' · ':'')+(labels[s.state]||s.state);$('progress').max=s.total||1;$('progress').value=s.completed||0;$('current').textContent=s.state==='running'?`${s.completed} / ${s.total}　目前：${s.current||'準備中'}`:`已處理 ${s.completed||0} / ${s.total||0}`+(s.skipped?.length?'；未執行：'+s.skipped.map(x=>x.split('/').pop()).join('、'):'');const pg=s.page_progress;$('pageProgressGroup').hidden=!(s.stage==='raw'&&pg);if(pg){$('pageProgress').max=pg.total_pages||1;$('pageProgress').value=pg.completed_pages||0;$('pageProgressText').textContent=`PDF 目前頁段進度：第 ${pg.file_index+1}/${pg.file_total} 份 ${pg.file_name}；本頁段已完成 ${pg.completed_pages}/${pg.total_pages} 頁，PDF 第 ${pg.page_no} 頁${pg.success?'完成':'失敗'}`;}else{$('pageProgress').value=0;$('pageProgressText').textContent='';}$('results').replaceChildren();for(const item of s.results){const div=document.createElement('div'),b=document.createElement('b'),span=document.createElement('span');div.className='result';b.textContent=(item.stage?names[item.stage]+'｜':'')+(item.index_group_name?item.index_group_name+'｜':'')+item.name;span.textContent=item.message+'（'+item.status+'）';div.append(b,span);const config=document.createElement('span');config.className='muted';config.style.display='block';config.textContent=runtimeConfigText(item);div.append(config);if((item.stage||s.stage)!=='raw'){const elapsed=document.createElement('span');elapsed.className='muted';elapsed.style.display='block';elapsed.textContent='執行時間：'+durationText(item.elapsed_seconds);div.append(elapsed);}if((item.stage||s.stage)==='raw'){const metric=document.createElement('span');metric.className='muted';metric.textContent=rawMetricText(item);if(metric.textContent)div.append(metric);const timing=document.createElement('span');timing.className='muted';timing.style.display='block';timing.textContent=stageTimingText(item);div.append(timing);}$('results').append(div);}if(s.index_groups){const titles={completed:'完成',completed_with_errors:'部分失敗',stopped:'未全部執行'};for(const g of s.index_groups){const div=document.createElement('div');div.className='result';div.textContent=`索引組 ${g.group_number}/${g.group_total}：${g.index_group_name} — ${titles[g.status]||g.status}；成功 ${g.succeeded}/${g.total} 份`;$('results').append(div);}}if(s.state==='running'&&s.group_number)$('current').textContent=`索引組 ${s.group_number}/${s.group_total}：${s.index_group_name}；`+$('current').textContent;const summary=$('pipelineSummary');summary.replaceChildren();summary.hidden=!s.pipeline_phases;if(s.pipeline_phases){const p=document.createElement('p');p.textContent=`連續流程：階段${pipelineOrder.indexOf(s.pipeline_start)+1} → ${pipelineOrder.indexOf(s.pipeline_end)+1}；總耗時：${durationText(s.pipeline_elapsed_seconds)}`;summary.append(p);for(const phase of s.pipeline_phases){const line=document.createElement('p');line.className='muted';line.textContent=`階段${pipelineOrder.indexOf(phase.stage)+1} ${names[phase.stage]}：${phase.state==='pending'?'尚未執行':labels[phase.state]||phase.state}`+(Number.isFinite(phase.elapsed_seconds)?'，'+durationText(phase.elapsed_seconds):'')+(phase.output?'；'+(phase.artifacts_retained===false?'紀錄保留，中間產物已清理：':'輸出：')+phase.output:'');summary.append(line);}if(s.pipeline_message){const line=document.createElement('p');line.textContent=s.pipeline_message;summary.append(line);}}if(s.error||s.cleanup_warning)$('error').textContent=s.error||s.cleanup_warning;render();}catch(e){$('error').textContent='無法連線到本機服務。若工作狀態不明，請先查看批次 Record，勿當作成功。';}}
+
+function selectChunkMode(value){chunkMode=value;$('parentLimitParameter').hidden=true;$('childTargetParameter').hidden=true;$('chunkModeHelp').textContent=value==='parent_child'?'一般內文依字數上限分項，依序找目標後空行、中文句點、字數邊界。###群組整組保留，可超過上限；表格獨立，跨頁按頁分子項。':'一般文字保留hd2邊界，忽略下層標題切點；累積達門檻後在content_end切開，單段超限整段保留。表格與###群組沿用父子切法規則。';for(const [id,mode] of [['originalMode','original'],['parentChildMode','parent_child']]){$(id).classList.toggle('primary',value===mode);$(id).setAttribute('aria-pressed',String(value===mode));}}
+
+$('originalMode').onclick=()=>selectChunkMode('original');$('parentChildMode').onclick=()=>selectChunkMode('parent_child');selectChunkMode(chunkMode);$('textEmbeddingMode').value='__TEXT_EMBEDDING_MODE__';$('tableEmbeddingMode').value='__TABLE_EMBEDDING_MODE__';
+
+function bindRange(numberId,rangeId,noteId){
+
+  const number=$(numberId),range=$(rangeId),note=$(noteId);
+
+  function sync(){const value=Number(number.value),maximum=Number(range.max);if(Number.isFinite(value)&&value>=1)range.value=String(Math.min(value,maximum));note.hidden=!(value>maximum);note.textContent=value>maximum?`超出滑桿範圍，將使用輸入的 ${value} 字。`:'';}
+
+  number.addEventListener('input',sync);range.addEventListener('input',()=>{number.value=range.value;sync();});sync();
+
+}
+
+bindRange('parentLimit','parentRange','parentOver');bindRange('recursiveThreshold','thresholdRange','thresholdOver');bindRange('childTarget','childRange','childOver');
+
+$('ocr').onchange=render;
+
+$('tableMode').value='__TABLE_MODE__';
+
+changeStage('raw');refresh();poll();setInterval(poll,__POLL__);
+
+</script><script src="/database.js"></script><script src="/api-settings.js"></script><script>refreshApiSettings().catch(fail);</script></body></html>
+

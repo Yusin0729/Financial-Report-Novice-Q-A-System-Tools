@@ -1,0 +1,189 @@
+{
+  "upstream": "https://github.com/opendatalab/MinerU",
+  "local_version": "2.6.5",
+  "commit": null,
+  "files": [
+    {
+      "source": "mineru/model/utils/tools/infer/predict_det.py",
+      "source_sha256": "bd8411127eef10b5f106cafbd8208256f9b583057cd8e35a0b019fc542239def",
+      "selected_definitions": null,
+      "vendored_sha256": "a4b54ff658a143b5e1bfe768d515c89cb2540e7c21abd10ed42b141db67bf853"
+    },
+    {
+      "source": "mineru/model/utils/tools/infer/predict_rec.py",
+      "source_sha256": "f811fddc90e2b2ed244fa0b21c0e2995438a71bd8bf94bc393b4de8a7e6ec2de",
+      "selected_definitions": null,
+      "vendored_sha256": "6ab2e884564a812212d4b1c23926df13ec9886ef36bbce913eb240432e82b902"
+    },
+    {
+      "source": "mineru/model/utils/tools/infer/predict_system.py",
+      "source_sha256": "8647a0927ea1ab6bf6cea1d500feb5e7e93e7e44d2f2cc116126d97a8aa6488f",
+      "selected_definitions": [
+        "TextSystem",
+        "sorted_boxes"
+      ],
+      "vendored_sha256": "186d9171df8f275c8556c3b057c188213b855c8bcfa5d47df655b3bd2c7e1c99"
+    },
+    {
+      "source": "mineru/model/utils/tools/infer/pytorchocr_utility.py",
+      "source_sha256": "8b53c537efe479f254519e1593b8a0b354d4f207c4ad30e50d763afbc51ababc",
+      "selected_definitions": null,
+      "vendored_sha256": "08a958263686c5b6a003e00062b3fde5ba80f72d7df6e6e8b7c10b137013dd5a"
+    },
+    {
+      "source": "mineru/model/utils/pytorchocr/base_ocr_v20.py",
+      "source_sha256": "e5b23b300bbae6bfaf9f6f24af0749ea98d932412f5a3b2913b110693b11111c",
+      "selected_definitions": null,
+      "vendored_sha256": "f2d8e69c8b4af1053b642980f1e6636df7aa10ce3821159f96e12aeec0fa5c03"
+    },
+    {
+      "source": "mineru/model/utils/pytorchocr/modeling/architectures/base_model.py",
+      "source_sha256": "4615760e6fa8b34f24085ca54f9ef346eef61eafd125d172df141ed4c3da0ae5",
+      "selected_definitions": null,
+      "vendored_sha256": "ad681041a906c6154c20af4635f129f85ca10f28e22a4f5034bb623072b0fed0"
+    },
+    {
+      "source": "mineru/model/utils/pytorchocr/modeling/common.py",
+      "source_sha256": "debda34ef3d8412e08813bc8a91e25e9b055c11ee39fef3bad29a9bf7b65ab12",
+      "selected_definitions": null,
+      "vendored_sha256": "ac3c858782c419554a5cc84e128f0f43e91e99e2f4647343dfa981754df9fb59"
+    },
+    {
+      "source": "mineru/model/utils/pytorchocr/modeling/backbones/rec_lcnetv3.py",
+      "source_sha256": "f954734cfb6becb4e6c09e1d0adb08fbe803f35600761de59556aef4ae159dcf",
+      "selected_definitions": null,
+      "vendored_sha256": "e2fd051dc6c4350af1c35f2ad02533c0618331264e1110cb618be1240d727c55"
+    },
+    {
+      "source": "mineru/model/utils/pytorchocr/modeling/backbones/rec_svtrnet.py",
+      "source_sha256": "008694677216064473da95a66a70634b441d25c6278a6312578316a1f36941c8",
+      "selected_definitions": null,
+      "vendored_sha256": "c879500ff196ac61930ff1a492284da2cbe5dea00ff8822dd8cd1bee0e182c79"
+    },
+    {
+      "source": "mineru/model/utils/pytorchocr/modeling/backbones/rec_hgnet.py",
+      "source_sha256": "52c21bcea37f928c86a128754c0f6bdbb4a08291db78a4b71e6992f80d80c34e",
+      "selected_definitions": [
+        "ConvBNAct"
+      ],
+      "vendored_sha256": "d6fc2c046144e4921da79113bfaba3ca6f9c269f4bd7a52afcbf1896286e24e0"
+    },
+    {
+      "source": "mineru/model/utils/pytorchocr/modeling/backbones/det_mobilenet_v3.py",
+      "source_sha256": "af48169c0d579add19c381502f1ee47fe596c1977fdba3df37384cd3976b72e1",
+      "selected_definitions": [
+        "ConvBNLayer",
+        "SEModule"
+      ],
+      "vendored_sha256": "48893a6234adff342391cd8cf9df3b0d611dc0096c43f032bbbbdc6c09d85abd"
+    },
+    {
+      "source": "mineru/model/utils/pytorchocr/modeling/necks/db_fpn.py",
+      "source_sha256": "4cb176a52caf442d283f32f4795c8d960dd6e99bdfaf827c7c3d67ce2541eee2",
+      "selected_definitions": [
+        "RSEFPN",
+        "RSELayer"
+      ],
+      "vendored_sha256": "c8b431df5b0c466bc4b76e3f5847e08444814d6b7e0cc169dbca09c2fecd17e4"
+    },
+    {
+      "source": "mineru/model/utils/pytorchocr/modeling/necks/rnn.py",
+      "source_sha256": "4c052ae267b883fc97c5ab79c053a0193aa7a82d9450ad456762defb61162aa0",
+      "selected_definitions": null,
+      "vendored_sha256": "dbd337e1ae7c59e3457365b5576277760e7bccad759c5bf97f18d57ca31d0639"
+    },
+    {
+      "source": "mineru/model/utils/pytorchocr/modeling/necks/intracl.py",
+      "source_sha256": "c3641dc1d23d069896f76552e26a8bdf5b1511121b639dd37db0f943aa2489a6",
+      "selected_definitions": null,
+      "vendored_sha256": "2a21a1734e63158537678882387f184630096ad104343400b0dc8a76d7c61c23"
+    },
+    {
+      "source": "mineru/model/utils/pytorchocr/modeling/heads/det_db_head.py",
+      "source_sha256": "fa4f1ba6e190c3fc48543b2e9ab7e298ec60d0efa83f630e0320c94e353bd11a",
+      "selected_definitions": [
+        "DBHead",
+        "Head"
+      ],
+      "vendored_sha256": "0109beb08080f87f4f3c17be65b87a380227ac51a3e90769b8ccb8f9d9775c8a"
+    },
+    {
+      "source": "mineru/model/utils/pytorchocr/modeling/heads/rec_ctc_head.py",
+      "source_sha256": "cb0ca4e512605084dd5efad4664db205258ab1a648aa74e87dd15bb9052dc235",
+      "selected_definitions": null,
+      "vendored_sha256": "2f3aa4354f5a83ca04fc7977eb91bc086f796881f8a9cb41e96f10f84376db1b"
+    },
+    {
+      "source": "mineru/model/utils/pytorchocr/modeling/heads/rec_multi_head.py",
+      "source_sha256": "2b8d12300f2d0155aefb77f081f8778c659e54501d5673321e3799788f4e3bb4",
+      "selected_definitions": null,
+      "vendored_sha256": "1749423cdec949755d1f1d594c92be2a98324818213b91a206b9885c423f2460"
+    },
+    {
+      "source": "mineru/model/utils/pytorchocr/postprocess/db_postprocess.py",
+      "source_sha256": "01d64f17b7eb850dbb555769d0616631c5ed8afc036597d7621cc93a53f8cd4b",
+      "selected_definitions": null,
+      "vendored_sha256": "0af0d6a8ecb0edf23dcef45f4bc2524a79360179889ef6ed3773d9dd3de6f99a"
+    },
+    {
+      "source": "mineru/model/utils/pytorchocr/postprocess/rec_postprocess.py",
+      "source_sha256": "a86077a271441611e3aa4b0847520a3b1d8463df1ec1fb268c00e3ad15e0df46",
+      "selected_definitions": [
+        "BaseRecLabelDecode",
+        "CTCLabelDecode"
+      ],
+      "vendored_sha256": "3c893cc56a972941f0c7bcfea4ef1f03ee8d02eb89235755d9eef6337d04416c"
+    },
+    {
+      "source": "mineru/model/utils/pytorchocr/data/__init__.py",
+      "source_sha256": "618bb773e5b87e0104af1c4333df2e437a16c0f121fbac3be4b638cdc8f856d3",
+      "selected_definitions": null,
+      "vendored_sha256": "4635579c593c14354ba70a6f1a7853616cab9157ecc0a557b8e94bddea48ef17"
+    },
+    {
+      "source": "mineru/model/utils/pytorchocr/data/imaug/__init__.py",
+      "source_sha256": "7381f48173d1c1e434c0c16792b08b4d1e8caed1be7b89148a7c70ab61b557d5",
+      "selected_definitions": null,
+      "vendored_sha256": "5e720a40691e29b78979554dfb3521998bb046457d6fd7180439582ab840ee9a"
+    },
+    {
+      "source": "mineru/model/utils/pytorchocr/data/imaug/operators.py",
+      "source_sha256": "79d05a0de7b39910241a476e3c5e8859c529136597461ee6011a929f0cb29c40",
+      "selected_definitions": [
+        "DetResizeForTest",
+        "KeepKeys",
+        "NormalizeImage",
+        "ToCHWImage"
+      ],
+      "vendored_sha256": "5bdb4005779f216fd82dcc30056979b91570d07a3f02bde489b6214c0aecfea1"
+    },
+    {
+      "source": "mineru/model/utils/pytorchocr/modeling/backbones/__init__.py",
+      "source_sha256": "74e9aa86f2eb04cfb68a6730b7bde44ba00f98c6e1a15613a33966a8e9117ea0",
+      "modification": "selected registry only"
+    },
+    {
+      "source": "mineru/model/utils/pytorchocr/modeling/necks/__init__.py",
+      "source_sha256": "eb7e0bd72f905afe4ff28a4d89298abd0131dd4b24736d111bc0d888275b97c5",
+      "modification": "selected registry only"
+    },
+    {
+      "source": "mineru/model/utils/pytorchocr/modeling/heads/__init__.py",
+      "source_sha256": "7650d6008083ff73eb622862a421c33f91822551fff9fc128fb59fa237c808ca",
+      "modification": "selected registry only"
+    },
+    {
+      "source": "mineru/model/utils/pytorchocr/postprocess/__init__.py",
+      "source_sha256": "882d4e97a093c51599054c90ff9215311ea422eaeff5624f3965a8ecd02e6410",
+      "modification": "selected registry only"
+    },
+    {
+      "source": "mineru/model/utils/pytorchocr/utils/resources/arch_config.yaml",
+      "source_sha256": "06f697b075d7572c5838562392dec7b72656884c8baef1ec1ec2587d06528436"
+    },
+    {
+      "source": "mineru/model/utils/pytorchocr/utils/resources/ppocrv5_dict.txt",
+      "source_sha256": "d1979e9f794c464c0d2e0b70a7fe14dd978e9dc644c0e71f14158cdf8342af1b"
+    }
+  ]
+}

@@ -1,0 +1,21 @@
+torch==2.14.0
+torchvision==0.29.1
+transformers==5.17.0
+accelerate==1.15.0
+pypdfium2==5.13.0
+Pillow==12.3.0
+psutil==7.2.2
+python-dotenv==1.2.4
+docling-slim[format-pdf,models-local]==2.140.0
+rtree==1.4.1
+
+# MinerU 最小 OCR 元件的直接依賴；不安裝完整 MinerU pipeline
+numpy==2.4.6
+opencv-python-headless==5.0.0.93
+PyYAML==6.0.3
+shapely==2.2.0
+pyclipper==1.4.0
+scipy==1.17.1  # Docling OCR區域偵測的必要依賴
+tqdm==4.70.1
+huggingface-hub==1.33.0
+pdf-inspector==1.25.2
