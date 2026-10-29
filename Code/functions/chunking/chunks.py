@@ -60,6 +60,8 @@ def validate_chunk_document(document):
             required.update(('node_type','parent_relation','heading_parent_id'))
         if 'embedding_context_modes' in document:
             required.add('embedding_context_mode')
+        if 'content_prefix_format' in chunk:
+            required.add('content_prefix_format')
         if set(chunk) != required:
             raise ValueError('chunk欄位缺少或多餘')
         if chunk['chunk_id'] in seen or chunk['doc_id'] != document['doc_id']:

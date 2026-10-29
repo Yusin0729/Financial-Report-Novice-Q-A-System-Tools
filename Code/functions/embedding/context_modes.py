@@ -18,5 +18,5 @@ def embedding_text(chunk, mode):
         raise ValueError('embedding脈絡模式無效')
     body = convert_content(content_body(chunk))[0]
     context = {**chunk, **section_fields(chunk['title'])}
-    prefix = context_prefix(context, mode=mode)
+    prefix = context_prefix(context, mode=mode, prefix_format=chunk.get('content_prefix_format', 'legacy'))
     return (prefix + body).strip()

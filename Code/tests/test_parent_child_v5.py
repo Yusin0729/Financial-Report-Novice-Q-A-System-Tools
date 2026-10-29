@@ -36,7 +36,7 @@ class ParentChildV5Tests(unittest.TestCase):
         self.assertEqual([c['body_char_count'] for c in doc['chunks']],[500])
         self.assertEqual(doc['parents'],[])
         self.assertIn('甲'*200+'\n'+'乙'*300,content_body(doc['chunks'][0]))
-        self.assertEqual(doc['rule_version'],'bounded-parent-child/5.6')
+        self.assertEqual(doc['rule_version'],'bounded-parent-child/5.7')
 
     def test_adjacent_contents_split_after_merge_and_return_whole_parent(self):
         doc=self.check(run('甲'*300+'\n\n'+'乙'*300+'\n\n'+'丙'*400+'\n',

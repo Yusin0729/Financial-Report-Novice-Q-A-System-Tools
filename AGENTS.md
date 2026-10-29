@@ -1,5 +1,11 @@
 # 完整財報 RAG：AI 開發規範
 
+## 2026-10-30：chunk首行改為脈絡路徑
+
+第四階段兩種切法、文字及表格皆套用：full為「目錄小標 > 小標題各層 > 說明」，description只有說明原文（去掉年度片段），body不加首行。不再印Sub_Section／Note_Title／說明欄位名，不加「本表為」或推定的新敘述。標題移除開頭中文／阿拉伯／字母列表編號，保留IFRS、金額與有意義的數字；metadata、來源正文、說明原欄位不變。相鄰同名標題及與標題完全相同的說明省略重複項目；沒有值不留分隔符。
+新chunk含content_prefix_format=path-v1，原始切法規則1.5／父子5.7，確保新舊索引隔離。舊chunk沒有格式標記時，仍依舊首行驗證與建庫，不悄悄改變舊embedding。需重新跑第四、第五階段才影響既有資料。
+
+
 ## 2026-10-29：Gemini失敗改用Ollama
 
 Gemini呼叫（含token檢查）失敗、空白或未完成回答時，自動以相同問題、完整證據及Gemini自訂指令呼叫本機Ollama一次。GPT流程不變。預設模型`llama3.1:8b`，可用環境變數`FINANCIAL_RAG_OLLAMA_MODEL`修改；須先在執行網站的同一台機器啟動Ollama並安裝模型，不會自動下載或改用Ollama雲端。Colab中的localhost是Colab，不能直接使用個人電腦的Ollama。

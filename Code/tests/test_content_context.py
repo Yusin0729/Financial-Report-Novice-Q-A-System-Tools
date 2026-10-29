@@ -27,12 +27,12 @@ class ContentContextTests(unittest.TestCase):
         self.assertNotIn('年度：', chunk['content_prefix'])
         self.assertNotIn('股票代號：', chunk['content_prefix'])
         self.assertNotIn('Main_Section：', chunk['content_prefix'])
-        self.assertIn('說明：各產品金額如下：', chunk['content'])
+        self.assertIn('各產品金額如下：', chunk['content'])
         self.assertNotIn('112及111年度', chunk['content'])
         self.assertEqual(chunk['table_context'], '112及111年度各產品金額如下：')
         self.assertEqual(content_body(chunk), TABLE)
         text = self.prepared(doc)['chunks'][0]['embedding_text']
-        self.assertEqual(text.count('說明：各產品金額如下：'), 1)
+        self.assertEqual(text.count('各產品金額如下：'), 1)
         self.assertNotIn('112及111年度', text)
         self.assertNotIn('股票代號：2330', text)
         self.assertNotIn('Main_Section：', text)
@@ -42,11 +42,11 @@ class ContentContextTests(unittest.TestCase):
         body = '## 金額說明如下：\n## 112年度\n'+TABLE
         chunk = run(body, 'parent_child').document['chunks'][0]
         self.assertEqual(chunk['years'], [2023, 2025])
-        self.assertIn('說明：金額說明如下：', chunk['content_prefix'])
+        self.assertIn('金額說明如下：', chunk['content_prefix'])
         body = '## 112及111年度各產品金額如下：\n'+TABLE.replace('金額', '114年度')
         chunk = run(body, 'parent_child').document['chunks'][0]
         self.assertEqual(chunk['years'], [2025])
-        self.assertIn('說明：各產品金額如下：', chunk['content_prefix'])
+        self.assertIn('各產品金額如下：', chunk['content_prefix'])
         self.assertIn('114年度', content_body(chunk))
 
     def test_strip_only_year_fragments_preserving_financial_values_and_durations(self):
@@ -70,7 +70,7 @@ class ContentContextTests(unittest.TestCase):
         self.assertNotIn('年度：', chunk['content_prefix'])
         self.assertNotIn('股票代號：', chunk['content_prefix'])
         self.assertEqual(chunk['doc_id'],'2025Q4_2330_Financial_Report')
-        self.assertIn('說明：相關說明', chunk['content_prefix'])
+        self.assertIn('相關說明', chunk['content_prefix'])
         self.assertEqual(chunk['directions'][0]['text'], '112及111年度相關說明')
         self.assertEqual(content_body(chunk), '原文內容。\n')
         self.prepared(doc)
@@ -85,6 +85,7 @@ class ContentContextTests(unittest.TestCase):
                 chunk.pop(name)
             body = content_body(chunk)
             chunk.pop('embedding_context_mode')
+            chunk.pop('content_prefix_format')
             chunk['content_prefix'] = context_prefix(chunk, remove_years=False, include_identity=True)
             chunk['content'] = chunk['content_prefix'] + body
         validate_chunk_document(doc)
@@ -94,8 +95,8 @@ class ContentContextTests(unittest.TestCase):
         body = '## (一)退休金\n## 風險說明如下：\n'+'甲'*400+'\n\n'+'乙'*400+'\n'
         doc = run(body, 'parent_child').document
         chunk, parent = doc['chunks'][0], doc['parents'][0]
-        self.assertIn('Note_Title：(一)退休金', chunk['content_prefix'])
-        self.assertIn('說明：風險說明如下：', chunk['content_prefix'])
+        self.assertIn('退休金', chunk['content_prefix'])
+        self.assertIn('風險說明如下：', chunk['content_prefix'])
         self.assertEqual(''.join(content_body(c) for c in doc['chunks']), content_body(parent))
         self.assertEqual(chunk['body_char_count'], 400)
         self.prepared(doc)

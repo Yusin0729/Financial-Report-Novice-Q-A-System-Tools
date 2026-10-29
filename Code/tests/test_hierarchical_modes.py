@@ -111,7 +111,7 @@ class HierarchicalTests(unittest.TestCase):
         self.assertEqual(c['table_year'][0]['text'], '114年度')
         self.assertNotIn('<table_year>', c['content'])
         self.assertNotIn('所得稅組成如下', content_body(c))
-        self.assertIn('說明：所得稅組成如下', c['content_prefix'])
+        self.assertIn('所得稅組成如下', c['content_prefix'])
         prepared = prepare_document(doc, input_sha256='b'*64)
         validate_prepared(prepared)
         self.assertIn('所得稅組成如下', prepared['chunks'][0]['embedding_text'])

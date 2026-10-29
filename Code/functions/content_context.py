@@ -42,7 +42,7 @@ def description_without_years(text):
     return '' if re.fullmatch(r'[\s、，,；;：:]*', value) else value
 
 
-def context_prefix(chunk, *, remove_years=True, include_identity=False, mode='full'):
+def legacy_context_prefix(chunk, *, remove_years=True, include_identity=False, mode='full'):
     if mode not in ('body', 'description', 'full'):
         raise ValueError('embedding脈絡模式無效')
     if mode == 'body':
@@ -76,14 +76,57 @@ def context_prefix(chunk, *, remove_years=True, include_identity=False, mode='fu
     return line + '\n' if line else ''
 
 
+PREFIX_FORMAT = 'path-v1'
+_NUMBER = r'(?:[一二三四五六七八九十百千〇零兩廿卅壹貳參肆伍陸柒捌玖拾0-9]+|[A-Za-z])'
+_LEADING_NUMBER = re.compile(r'^\s*(?:\(\s*' + _NUMBER + r'\s*\)\s*[、.]?|' + _NUMBER + r'\s*[、.])\s*')
+
+
+def heading_text(value):
+    """Remove only explicit leading list numbers; keep IFRS/numeric title meaning."""
+    text = unicodedata.normalize('NFKC', value).strip()
+    while True:
+        stripped = _LEADING_NUMBER.sub('', text, count=1)
+        if stripped == text:
+            return ' '.join(text.split())
+        text = stripped
+
+
+def context_prefix(chunk, *, remove_years=True, include_identity=False, mode='full', prefix_format=PREFIX_FORMAT):
+    if prefix_format == 'legacy' or include_identity:
+        return legacy_context_prefix(chunk, remove_years=remove_years, include_identity=include_identity, mode=mode)
+    if prefix_format != PREFIX_FORMAT or mode not in ('body', 'description', 'full'):
+        raise ValueError('chunk首行格式或embedding脈絡模式無效')
+    if mode == 'body':
+        return ''
+    parts = []
+    if mode == 'full':
+        for value in [chunk['sub_section'], *chunk['note_title']]:
+            for section in value.split('>'):
+                text = heading_text(section)
+                if text and (not parts or re.sub(r'\s+', '', parts[-1]) != re.sub(r'\s+', '', text)):
+                    parts.append(text)
+    descriptions = ([chunk.get('table_context', '')] if chunk['content_type'] == 'table'
+                    else [r['text'] for r in chunk.get('directions', [])])
+    seen = {re.sub(r'\s+', '', p) for p in parts}
+    for value in descriptions:
+        value = description_without_years(value) if remove_years else value
+        text = ' '.join(value.split())
+        key = re.sub(r'\s+', '', text)
+        if key and key not in seen:
+            parts.append(text)
+            seen.add(key)
+    return ' > '.join(parts) + '\n' if parts else ''
+
+
 def content_body(chunk):
     """只移除有明確欄位且通過重算驗證的生成首行；舊版正文逐字返回。"""
     prefix = chunk.get('content_prefix')
     if prefix is None:
         return chunk['content']
     mode = chunk.get('embedding_context_mode')
-    allowed = ((context_prefix(chunk, mode=mode),) if mode is not None else
-               tuple(context_prefix(chunk, remove_years=remove, include_identity=identity)
+    format_name = chunk.get('content_prefix_format', 'legacy')
+    allowed = ((context_prefix(chunk, mode=mode, prefix_format=format_name),) if mode is not None else
+               tuple(context_prefix(chunk, remove_years=remove, include_identity=identity, prefix_format=format_name)
                      for remove in (True, False) for identity in (False, True)))
     if (not isinstance(prefix, str) or prefix not in allowed
             or not chunk['content'].startswith(prefix)):
@@ -109,5 +152,6 @@ def add_context(chunk, mode=None):
         raise ValueError('chunk已有content首行，拒絕重複加入')
     if mode is not None:
         chunk['embedding_context_mode'] = mode
+    chunk['content_prefix_format'] = PREFIX_FORMAT
     chunk['content_prefix'] = context_prefix(chunk, mode=mode or 'full')
     chunk['content'] = chunk['content_prefix'] + chunk['content']

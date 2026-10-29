@@ -7,7 +7,7 @@ from functions.markdown_processing.mark_headings import _protected_lines
 from functions.content_context import add_context
 
 SCHEMA = 'financial-chunks/5.0'
-RULE = 'bounded-parent-child/5.6'
+RULE = 'bounded-parent-child/5.7'
 
 
 def _list_offset(atom):
@@ -230,7 +230,7 @@ def chunk_parent_child(roots, source, *, identity, source_sha256, config):
         raise ValueError('來源沒有有效正文或表格，未輸出空成功')
     for value in chunks+parents:
         add_context(value, config.table_embedding_mode if value['content_type']=='table' else config.text_embedding_mode)
-    doc = {'schema_version':SCHEMA,'rule_version':('content-end-original/1.4' if config.mode=='original' else RULE),'doc_id':doc_id,
+    doc = {'schema_version':SCHEMA,'rule_version':('content-end-original/1.5' if config.mode=='original' else RULE),'doc_id':doc_id,
            'source_sha256':source_sha256,'excluded_prefix_end':0,
            'chunking':{k:v for k,v in asdict(config).items() if k in
                        ('mode','parent_limit','child_target','recursive_threshold','document_period')},

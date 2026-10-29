@@ -44,11 +44,13 @@ class EmbeddingContextTests(unittest.TestCase):
                         self.assertNotIn('說明：',value)
                         self.assertNotIn('Sub_Section：',value)
                     elif mode=='description':
-                        self.assertIn('說明：',value)
+                        self.assertIn('說明如下：',value)
                         self.assertNotIn('Note_Title：',value)
                     else:
-                        self.assertIn('Sub_Section：',value)
-                        self.assertIn('Note_Title：',value)
+                        self.assertNotIn('Sub_Section：',value)
+                        self.assertIn(' > ',value)
+                        self.assertNotIn('Note_Title：',value)
+                        self.assertIn('測試小標',value)
                     if item['original_chunk']['content_type']=='table':
                         self.assertIn('114年度',value)
                         self.assertIn('(100)',value)

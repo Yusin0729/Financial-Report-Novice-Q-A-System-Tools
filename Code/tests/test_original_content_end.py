@@ -10,7 +10,7 @@ from Code_2.functions.qa.pipeline import evidence_rows
 class OriginalContentEndTests(unittest.TestCase):
     def check(self,doc):
         self.assertEqual(doc['schema_version'],'financial-chunks/5.0')
-        self.assertEqual(doc['rule_version'],'content-end-original/1.4')
+        self.assertEqual(doc['rule_version'],'content-end-original/1.5')
         self.assertEqual(doc['chunking']['mode'],'original')
         validate_prepared(prepare_document(doc,input_sha256='a'*64))
         for c in doc['chunks']+doc['parents']:
