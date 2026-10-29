@@ -25,3 +25,8 @@
 
 /* 歷史索引預設收合，避免實驗索引占滿清單。 */
 .index-history-folder{margin:12px 0;padding:12px;border:1px solid var(--line);border-radius:8px}.index-history-folder>summary{cursor:pointer;font-size:13px;font-weight:600;color:var(--green)}.index-history-folder>.field{margin-top:12px}.index-history-folder>p{font-size:12px}.index-history-folder>.checkbox{margin-top:12px}
+
+/* Project folders */
+.file-list{display:grid;gap:8px;margin:16px 0}.file-row{display:flex;align-items:center;gap:12px;padding:8px 0;border-bottom:1px solid #e5e7eb}.file-row>button:first-child{flex:1;text-align:left;overflow-wrap:anywhere}.file-row>span{flex:1;overflow-wrap:anywhere}.file-preview{white-space:pre-wrap;overflow-wrap:anywhere;max-height:65vh;overflow:auto;padding:16px;background:#f5f7fa;font-size:14px}#files-confirm{width:min(560px,90vw);border:1px solid #d5dbe3;border-radius:16px;padding:24px}#files-confirm::backdrop{background:#10203088}#files-confirm-error{color:#b42318}@media(max-width:650px){.file-row{flex-wrap:wrap}.file-row>button:first-child{flex-basis:100%}}
+
+#files-confirm{box-sizing:border-box;max-width:calc(100vw - 24px)}#files-confirm-detail{overflow-wrap:anywhere}#files-confirm input{box-sizing:border-box;max-width:100%}

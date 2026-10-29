@@ -77,11 +77,23 @@ def make_handler(settings, web, jobs, token, workspace, guard):
                 elif parsed.path in ('/api-settings.js', '/api-settings.html'):
                     path = Path(__file__).resolve().parents[3] / 'Code/functions/web_ui' / parsed.path[1:]
                     self.send_bytes(path.read_bytes(), 'text/javascript; charset=utf-8' if path.suffix=='.js' else 'text/html; charset=utf-8')
-                elif parsed.path in ('/app.js', '/style.css', '/workspace.js', '/workspace.css', '/evaluation.js', '/saved-rerank.js'):
+                elif parsed.path in ('/files.js', '/app.js', '/style.css', '/workspace.js', '/workspace.css', '/evaluation.js', '/saved-rerank.js'):
 
                     name = parsed.path[1:]
                     mime = 'text/javascript' if name.endswith('.js') else 'text/css'
                     self.send_bytes((assets / name).read_bytes(), mime + '; charset=utf-8')
+                elif parsed.path.startswith('/api/files/'):
+                    from Code_2.functions.web import files
+                    action=parsed.path.rsplit('/',1)[-1]
+                    area=params.get('area',['output'])[0];relative=params.get('path',[''])[0]
+                    if action=='list':self.send_json(files.listing(settings,area,relative,int(params.get('offset',['0'])[0])))
+                    elif action=='preview':self.send_json(files.preview(settings,area,relative))
+                    elif action=='trash':self.send_json(files.trash_list(settings))
+                    elif action=='download':
+                        path=files.file_path(settings,area,relative)
+                        if path.stat().st_size>web.max_report_bytes:raise ValueError('檔案超過下載上限，請從電腦開啟')
+                        self.send_bytes(path.read_bytes(),'application/octet-stream',filename='file'+path.suffix.lower())
+                    else:self.send_json({'error':'找不到檔案操作'},404)
                 elif parsed.path == '/api/health':
                     self.send_json({'application':'financial-rag-unified','version':1})
                 elif parsed.path == '/api/metadata':
@@ -121,7 +133,7 @@ def make_handler(settings, web, jobs, token, workspace, guard):
             if not self.allowed_origin() or not secrets.compare_digest(self.headers.get('X-App-Token', ''), token):
                 self.send_json({'error': '請從本機介面重新整理後操作。'}, 403)
                 return
-            if self.path not in ('/api/tasks', '/api/api-settings', '/api/shutdown', '/api/workspace/run', '/api/workspace/cancel', '/api/workspace/database', '/api/workspace/open-output', '/api/experiments/preview'):
+            if self.path not in ('/api/files/trash-preview','/api/files/trash','/api/files/restore','/api/tasks', '/api/api-settings', '/api/shutdown', '/api/workspace/run', '/api/workspace/cancel', '/api/workspace/database', '/api/workspace/open-output', '/api/experiments/preview'):
                 self.send_json({'error': '找不到這項操作。'}, 404)
                 return
             try:
@@ -134,6 +146,13 @@ def make_handler(settings, web, jobs, token, workspace, guard):
                 if not isinstance(data,dict):
                     raise ValueError('請求格式無效')
                 with guard:
+                    if self.path.startswith('/api/files/'):
+                        from Code_2.functions.web import files
+                        idle(self.server)
+                        if self.path=='/api/files/trash-preview':self.send_json(files.folder_snapshot(settings,data.get('area'),data.get('path')))
+                        elif self.path=='/api/files/trash':self.send_json(files.trash(settings,data))
+                        else:self.send_json(files.restore(settings,data.get('id')))
+                        return
                     if self.path=='/api/shutdown':
                         idle(self.server)
                         self.server.closing=True
