@@ -136,7 +136,7 @@ class SavedRerankTests(unittest.TestCase):
             run.assert_called_once()
 
     def test_child_topk_before_parent_and_output_tags_only(self):
-        from Code.functions.content_context import context_prefix
+        from Code.functions.content_context import legacy_context_prefix as context_prefix
         from Code_2.functions.experiments.child_candidates import ChildCandidates
         doc='2024Q4_2330_Financial_Report'
         def node(cid,text,parent=None):
