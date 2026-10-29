@@ -45,7 +45,7 @@ def run(source_dir, *, root=None, answer_model='gemini-3.1-flash-lite'):
                                 'answer': answer, 'evidence': evidence, 'generation': usage})
         except Exception as error:
             result_rows.append({'ID': qid, 'Question': question, 'status': 'failed',
-                                'error': str(error), 'evidence': evidence})
+                                'error': str(error), 'evidence': evidence, 'generation': dict(getattr(answerer, 'last_attempt', {}))})
         print(f'{idx}/{len(rows)}', flush=True)
     payload = {'schema_version': 'financial-blind-answer/1.0',
                'source_run': source_dir,
@@ -68,6 +68,8 @@ def run(source_dir, *, root=None, answer_model='gemini-3.1-flash-lite'):
         view = {'status': row['status'], 'answer': row['answer'], 'evidence': row['evidence'],
                 'mode': 'answer', 'answer_model': answer_model, 'answer_provider': 'gemini',
                 'prompt_version': PROMPT_VERSION}
+        if row.get('generation', {}).get('fallback_used'):
+            lines += [f"備援回答：Ollama / {row['generation']['model']}", '']
         lines += [render_answer(view), '']
     (output / 'answer.md').write_text('\n'.join(lines), encoding='utf-8')
     from Code_2.functions.experiments.question_reports import payloads

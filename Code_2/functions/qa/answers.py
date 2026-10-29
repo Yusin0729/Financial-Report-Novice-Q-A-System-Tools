@@ -210,11 +210,13 @@ def render_qa_report(result):
              '- 索引：' + result.get('collection', '尚未選定'),
              '- 重排序模型設定：' + result.get('rerank_model', '未設定'),
              '- 回答模型設定：' + result.get('answer_model', '未設定'),
+             '- 實際回答模型：' + str(result.get('generation', {}).get('provider', result.get('answer_provider', '未知'))) + ' / ' + str(result.get('generation', {}).get('model', result.get('answer_model', '未知'))),
+             '- Ollama備援：' + ('是；Gemini失敗原因：' + str(result.get('generation', {}).get('primary_attempt', {}).get('error', '未知')) if result.get('generation', {}).get('fallback_used') else '否'),
              '- 提示詞版本：' + result.get('prompt_version', '未知')]
     if result.get('report_kind') == 'saved_rerank':
         lines.extend(['## 舊報告來源', str(result.get('source_run')),
                       '沿用已保存的候選全文；本次只呼叫重排序，沒有重新embedding／檢索或回答。'])
-    answer_provider = 'GPT' if result.get('answer_provider') == 'openai' else 'Gemini'
+    answer_provider = 'Ollama' if result.get('generation', {}).get('provider') == 'ollama' else ('GPT' if result.get('answer_provider') == 'openai' else 'Gemini')
     lines.extend(['## 階段執行情況', '| 階段 | 狀態 |', '| --- | --- |'])
     for key, label in (('query_embedding', '問題向量'), ('retrieval', '向量檢索與初步排序'),
                        ('rerank', '重排序'), ('answer', answer_provider+'回答與引用驗證')):
@@ -287,6 +289,6 @@ def render_qa_report(result):
         lines.append(f'所選模式不執行{answer_provider}，沒有呼叫token預檢或生成回答；{answer_provider}用量不適用。')
     if result['status'] == 'failed':
         lines.extend(['## 失敗位置', '階段：' + result['stage'], result['error'],
-                      '已停止，沒有自動重試或切換模型。以上保留失敗前已完成的資料。'])
+                      '本次流程已停止；模型切換情況見上方設定及generation紀錄。以上保留失敗前已完成的資料。'])
     lines.extend(['## 核對限制', '引用存在與摘錄相符不代表語意已人工驗收；請核對財務期間、單位、欄位及來源。'])
     return '\n\n'.join(lines) + '\n'

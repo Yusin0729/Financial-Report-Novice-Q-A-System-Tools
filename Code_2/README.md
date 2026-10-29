@@ -1,5 +1,12 @@
 # Embedding 前處理、向量建庫與財報問答
 
+## 2026-10-29：Gemini失敗改用Ollama
+
+Gemini呼叫（含token檢查）失敗、空白或未完成回答時，自動以相同問題、完整證據及Gemini自訂指令呼叫本機Ollama一次。GPT流程不變。預設模型`llama3.1:8b`，可用環境變數`FINANCIAL_RAG_OLLAMA_MODEL`修改；須先在執行網站的同一台機器啟動Ollama並安裝模型，不會自動下載或改用Ollama雲端。Colab中的localhost是Colab，不能直接使用個人電腦的Ollama。
+本機端點固定`127.0.0.1:11434`，上下文32768、輸出上限4096、等待300秒；完整輸入以UTF-8位元組保守上限檢查，不默默截斷。上下文不足、無模型或連線失敗時保留兩階段錯誤。報告generation記錄實際provider/model、fallback_used、primary_attempt及各自用量；本機token數不是雲端付費用量。原本answer_provider/model仍代表要求的服務，actual_answer_provider/model代表實際服務。
+一般單題、多索引、Excel及舊報告Gemini回答共用此備援。若API金鑰設定階段就失敗，尚未呼叫Gemini，仍回報設定錯誤。
+
+
 
 ## 2026-10-29：所有父項於重排序後展開
 

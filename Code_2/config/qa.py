@@ -1,5 +1,6 @@
 """問答設定；不改建庫模型、索引或既有Output。"""
-from dataclasses import dataclass
+from dataclasses import dataclass, field
+import os
 
 PROMPT_VERSION = 'evidence-answer/direct-text-2.0'
 MAX_GEMINI_PROMPT_CHARACTERS = 20000
@@ -23,6 +24,10 @@ class QASettings:
     answer_model: str = 'gemini-3.1-flash-lite'
     answer_provider: str = 'gemini'
     gemini_system_prompt: str | None = None
+    ollama_fallback_enabled: bool = True
+    ollama_model: str = field(default_factory=lambda: os.environ.get('FINANCIAL_RAG_OLLAMA_MODEL', 'llama3.1:8b'))
+    ollama_context_tokens: int = 32768
+    ollama_timeout: float = 300.0
     rerank_profile: str | None = None
     answer_profile: str | None = None
     timeout: float = 120.0

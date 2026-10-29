@@ -56,11 +56,37 @@ class GeminiAnswerer:
                 raise ValueError('Gemini回覆過大')
             return json.loads(raw)
         except urllib.error.HTTPError as error:
-            raise RuntimeError(f'Gemini HTTP {error.code}；額度／權限／服務異常，已停止，未重試或切換模型') from None
+            raise RuntimeError(f'Gemini HTTP {error.code}；額度／權限／服務異常，本次Gemini呼叫失敗，未重試') from None
         except Exception as error:
             raise RuntimeError(f'Gemini請求失敗（{type(error).__name__}）；已停止，未重試') from None
 
     def answer(self, question, evidence):
+        # Validate caller instructions before invoking either provider.
+        gemini_prompt(self.settings.gemini_system_prompt)
+        try:
+            answer, usage = self._answer(question, evidence)
+            usage.update(provider='gemini', fallback_used=False)
+            self.last_attempt = usage
+            return answer, usage
+        except (RuntimeError, ValueError) as error:
+            if not self.settings.ollama_fallback_enabled:
+                raise
+            primary = dict(getattr(self, 'last_attempt', {}))
+            primary.update(provider='gemini', status='failed', error=str(error))
+            from Code_2.functions.qa.ollama_answer import OllamaAnswerer
+            fallback = OllamaAnswerer(self.settings)
+            self.last_attempt = {'provider': 'ollama', 'model': self.settings.ollama_model,
+                                 'fallback_used': True, 'primary_attempt': primary}
+            try:
+                answer, usage = fallback.answer(question, evidence)
+            except (RuntimeError, ValueError) as local_error:
+                self.last_attempt['fallback_error'] = str(local_error)
+                raise RuntimeError(f'Gemini失敗：{error}；Ollama備援也失敗：{local_error}') from None
+            usage.update(fallback_used=True, primary_attempt=primary)
+            self.last_attempt = usage
+            return answer, usage
+
+    def _answer(self, question, evidence):
         prompt = gemini_prompt(self.settings.gemini_system_prompt)
         self.last_attempt = {'model': self.settings.answer_model, 'system_prompt': prompt,
                              'prompt_source': 'custom' if self.settings.gemini_system_prompt is not None else 'default'}

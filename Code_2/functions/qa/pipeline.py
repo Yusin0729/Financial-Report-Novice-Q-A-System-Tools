@@ -283,6 +283,9 @@ def ask(question, settings, *, backend='bge', collection=None, stock_code=None, 
             if isinstance(attempt, dict):
                 base['generation'] = dict(attempt)
         base['generation'] = usage
+        base['actual_answer_provider'] = usage.get('provider', qa.answer_provider)
+        base['actual_answer_model'] = usage.get('model', qa.answer_model)
+        base['answer_fallback_used'] = usage.get('fallback_used', False)
         stage = 'answer'
         # Providers return direct text; this checks nonempty text only. Legacy
         # structured fixtures remain readable without changing old reports.

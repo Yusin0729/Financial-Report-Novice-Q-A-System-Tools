@@ -157,7 +157,7 @@ class ServiceTests(unittest.TestCase):
                 VoyageReranker(client, QASettings()).rerank('問題', [source()])
 
     def answerer(self, *, tokens=100, finish='STOP', body=None):
-        answerer = GeminiAnswerer('FAKE-KEY', QASettings())
+        answerer = GeminiAnswerer('FAKE-KEY', QASettings(ollama_fallback_enabled=False))
         answerer.post = Mock(side_effect=[{'totalTokens': tokens}, {
             'modelVersion': 'fake', 'usageMetadata': {'totalTokenCount': 150},
             'candidates': [{'finishReason': finish, 'content': {'parts': [
