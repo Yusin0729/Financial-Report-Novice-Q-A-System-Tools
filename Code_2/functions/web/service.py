@@ -2,7 +2,7 @@
 import re
 from dataclasses import replace
 from Code_2.config.embedding import BATCH_PATTERN
-from Code_2.config.qa import QASettings, MODE_LABELS
+from Code_2.config.qa import QASettings, MODE_LABELS, SYSTEM_PROMPT, MAX_GEMINI_PROMPT_CHARACTERS, gemini_prompt
 from Code_2.functions.embedding.indexing import recent_attempts
 from Code_2.functions.qa.catalog import list_indexes
 from Code_2.functions.embedding.paths import locations
@@ -23,7 +23,8 @@ def metadata(settings, web):
     return {'api_settings': public_settings(settings.project_root), 'indexes': list_indexes(settings),
             'defaults': {'retrieve_k': qa.retrieve_k, 'evidence_k': qa.evidence_k,
                          'max_retrieve_k': qa.max_retrieve_k, 'export_enabled': settings.export_enabled,
-                         'backend': settings.default_backend},
+                         'backend': settings.default_backend, 'gemini_system_prompt': SYSTEM_PROMPT,
+                         'max_gemini_prompt_characters': MAX_GEMINI_PROMPT_CHARACTERS},
             'models': {'rerank': qa.rerank_model, 'answer': qa.answer_model},
             'local_rerank_profiles': local_profiles(),
             'poll_milliseconds': web.poll_milliseconds}
@@ -92,7 +93,7 @@ def validate_task(data, settings):
         return clean
     common = {'action', 'export_enabled'}
     allowed = {'query': common | {'question', 'backend', 'collection', 'stock_code', 'report_year',
-                                  'mode', 'retrieve_k', 'evidence_k', 'embedding_profile', 'rerank_profile', 'answer_profile', 'rerank_enabled','include_heading_parent'}}
+                                  'mode', 'retrieve_k', 'evidence_k', 'embedding_profile', 'rerank_profile', 'answer_profile', 'rerank_enabled','include_heading_parent','gemini_system_prompt'}}
     if not isinstance(action, str) or action not in allowed or set(data) - allowed[action]:
         raise ValueError('不支援的操作或欄位')
     clean = {'action': action}
@@ -106,6 +107,10 @@ def validate_task(data, settings):
         mode = data.get('mode')
         if not isinstance(mode, str) or mode not in MODE_LABELS:
             raise ValueError('請選擇執行模式')
+        custom = data.get('gemini_system_prompt')
+        gemini_prompt(custom)
+        if mode == 'answer' and custom is not None:
+            clean['gemini_system_prompt'] = custom
         clean['rerank_enabled'] = boolean(data, 'rerank_enabled', True)
         clean['include_heading_parent'] = boolean(data,'include_heading_parent',False)
         if mode == 'rerank' and not clean['rerank_enabled']:
@@ -158,6 +163,7 @@ def execute_task(data, settings):
     # 單題run_question只回傳結果；批次報告由獨立實驗模組保存。
     qa = replace(QASettings(), retrieve_k=data['retrieve_k'], evidence_k=data['evidence_k'],
                  rerank_profile=data.get('rerank_profile'), answer_profile=data.get('answer_profile'),
+                 gemini_system_prompt=data.get('gemini_system_prompt'),
                  rerank_enabled=data.get('rerank_enabled', True),
                  include_heading_parent=data.get('include_heading_parent',False))
     current = replace(settings, export_enabled=data['export_enabled'], embedding_profile=data.get('embedding_profile'))

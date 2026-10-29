@@ -74,6 +74,11 @@
             <div class="field-row"><label class="field">向量檢索數量<input id="query-topk" type="number" min="1" max="1000" value="50" required></label><label class="field" id="rerank-count-field">證據數量／重排序保留數量<input id="query-rerank" type="number" min="1" max="1000" value="10" required></label></div>
             </details>
             <label class="checkbox" hidden><input id="query-export" type="checkbox" checked><span>保存批次測報（Excel／JSON／Markdown）</span></label>
+            <section id="gemini-prompt-panel" class="card form-card" hidden>
+              <label class="field">Gemini 回答指令<textarea id="gemini-system-prompt" rows="10" maxlength="20000" placeholder="輸入給 Gemini 的系統指令"></textarea></label>
+              <div class="download-row"><button id="gemini-prompt-save" type="button" class="secondary-button">儲存指令</button><button id="gemini-prompt-reset" type="button" class="secondary-button">恢復預設</button></div>
+              <p id="gemini-prompt-status" class="scope-note" role="status">此欄取代 Gemini 的預設系統指令；儲存於目前瀏覽器，不要填入金鑰。回答仍須符合既有 JSON 格式、引用及計算驗證；本欄不會停用這些程式規則。</p>
+            </section>
             <p class="service-note" id="service-note">完整回答使用所選重排序與LLM設定。</p>
             <button class="primary-button submit-action" type="submit">開始查詢 <span>↗</span></button>
           </form>

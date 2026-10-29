@@ -2,6 +2,7 @@
 from dataclasses import dataclass
 
 PROMPT_VERSION = 'evidence-answer/1.1'
+MAX_GEMINI_PROMPT_CHARACTERS = 20000
 MODE_LABELS = {'retrieve': '只排序（向量檢索）', 'rerank': '到重排序', 'answer': '完整回答'}
 
 
@@ -21,6 +22,7 @@ class QASettings:
     bge_rerank_max_tokens: int = 8192
     answer_model: str = 'gemini-3.1-flash-lite'
     answer_provider: str = 'gemini'
+    gemini_system_prompt: str | None = None
     rerank_profile: str | None = None
     answer_profile: str | None = None
     timeout: float = 120.0
@@ -48,6 +50,14 @@ claims內以{{calc1}}引用結果，不在text寫自行估算數字。無法提�
 status為answered或insufficient_evidence；reason說明不足或限制；無計算時calculations為空陣列。
 只有quoted、calculated、inference三類claim kind；推論須明示為推論並附依據。
 不提供投資建議，不宣稱檢索到的片段涵蓋整份或全部公司。'''
+
+
+def gemini_prompt(value=None):
+    if value is None:
+        return SYSTEM_PROMPT
+    if not isinstance(value, str) or not value.strip() or len(value) > MAX_GEMINI_PROMPT_CHARACTERS:
+        raise ValueError(f'Gemini回答指令須為1至{MAX_GEMINI_PROMPT_CHARACTERS}字元的文字')
+    return value
 
 
 def obj(properties):

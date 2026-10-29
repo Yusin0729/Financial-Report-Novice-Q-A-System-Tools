@@ -3,7 +3,7 @@ import json
 import math
 import urllib.error
 import urllib.request
-from Code_2.config.qa import SYSTEM_PROMPT, RESPONSE_SCHEMA
+from Code_2.config.qa import SYSTEM_PROMPT, RESPONSE_SCHEMA, gemini_prompt
 
 
 class NoRedirect(urllib.request.HTTPRedirectHandler):
@@ -61,11 +61,13 @@ class GeminiAnswerer:
             raise RuntimeError(f'Gemini請求失敗（{type(error).__name__}）；已停止，未重試') from None
 
     def answer(self, question, evidence):
-        self.last_attempt = {'model': self.settings.answer_model}
+        prompt = gemini_prompt(self.settings.gemini_system_prompt)
+        self.last_attempt = {'model': self.settings.answer_model, 'system_prompt': prompt,
+                             'prompt_source': 'custom' if self.settings.gemini_system_prompt is not None else 'default'}
         content = json.dumps({'original_question': question,
                               'evidence': [{k: e[k] for k in ('id', 'doc_id', 'page', 'text')} for e in evidence]},
                              ensure_ascii=False)
-        body = {'systemInstruction': {'parts': [{'text': SYSTEM_PROMPT}]},
+        body = {'systemInstruction': {'parts': [{'text': prompt}]},
                 'contents': [{'role': 'user', 'parts': [{'text': content}]}],
                 'generationConfig': {'maxOutputTokens': self.settings.max_output_tokens,
                                      'responseMimeType': 'application/json', 'responseSchema': RESPONSE_SCHEMA}}

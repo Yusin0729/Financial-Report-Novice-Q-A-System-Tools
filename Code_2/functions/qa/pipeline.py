@@ -4,7 +4,7 @@ import re
 import math
 import time
 from Code_2.config.embedding import INDEX_RULE, PREPARE_RULE
-from Code_2.config.qa import QASettings, PROMPT_VERSION, MODE_LABELS
+from Code_2.config.qa import QASettings, PROMPT_VERSION, MODE_LABELS, gemini_prompt
 from Code_2.functions.embedding.providers import create_provider, validate_vectors
 from Code_2.functions.embedding.keys import service_key
 from Code_2.functions.embedding.store import ChromaStore
@@ -236,6 +236,10 @@ def ask(question, settings, *, backend='bge', collection=None, stock_code=None, 
         if mode == 'rerank':
             return {**base, 'status': 'reranked'}
         stage = 'answer'
+        if qa.answer_provider == 'gemini':
+            base['answer_system_prompt'] = gemini_prompt(qa.gemini_system_prompt)
+            if qa.gemini_system_prompt is not None:
+                base['prompt_version'] = 'evidence-answer/custom'
         try:
             phase_started = time.perf_counter()
             answer, usage = answerer.answer(question, selected)

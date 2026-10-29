@@ -1,6 +1,14 @@
 # 完整財報 RAG：AI 開發規範
 
 
+## Gemini 回答指令輸入（2026-10-29）
+
+問答系統選「完整回答」及 Gemini 後，開始查詢按鈕上方會出現「Gemini 回答指令」。預設填入現有系統指令，可直接修改；「儲存指令」保留於目前瀏覽器，「恢復預設」還原。單題、多索引與 Excel 批次回答皆沿用這次輸入。
+此欄會取代送給 Gemini 的 systemInstruction，最多20000字元。GPT 不使用此欄。修改指令不會停用既有 JSON schema、引用、單位／期間與計算驗證；若要自由文字回答，仍需另外調整輸出與驗證程式。
+報告保存時記錄本次指令供追溯；不要在指令內填入 API key。此功能尚未延伸到舊報告另行回答的獨立入口。
+
+
+
 ## GitHub 上傳狀態（2026-10-29）
 
 - 程式已上傳至 [https://github.com/Yusin0729/Financial-Report-Novice-Q-A-System-Tools](https://github.com/Yusin0729/Financial-Report-Novice-Q-A-System-Tools)，預設分支 `main`；儲存庫目前公開。
