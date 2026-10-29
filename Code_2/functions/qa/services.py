@@ -1,4 +1,4 @@
-"""Voyage重排序與Gemini REST；零重試、禁止默默截斷、錯誤不顯示HTTP body。"""
+"""Voyage重排序與Gemini文字回答；不要求JSON或由程式驗算。"""
 import json
 import math
 import urllib.error
@@ -69,8 +69,7 @@ class GeminiAnswerer:
                              ensure_ascii=False)
         body = {'systemInstruction': {'parts': [{'text': prompt}]},
                 'contents': [{'role': 'user', 'parts': [{'text': content}]}],
-                'generationConfig': {'maxOutputTokens': self.settings.max_output_tokens,
-                                     'responseMimeType': 'application/json', 'responseSchema': RESPONSE_SCHEMA}}
+                'generationConfig': {'maxOutputTokens': self.settings.max_output_tokens}}
         counted = self.post('countTokens', {'generateContentRequest': {
             **body, 'model': 'models/' + self.settings.answer_model}})
         tokens = counted.get('totalTokens')
@@ -86,8 +85,7 @@ class GeminiAnswerer:
             raise ValueError('Gemini未正常完成，可能拒答或輸出截斷；不交付部分答案')
         parts = candidates[0].get('content', {}).get('parts', [])
         text = ''.join(p.get('text', '') for p in parts if not p.get('thought', False))
-        try:
-            answer = json.loads(text)
-        except (ValueError, TypeError):
-            raise ValueError('Gemini回答不是有效JSON') from None
-        return answer, dict(self.last_attempt)
+        if not text.strip():
+            raise ValueError('Gemini未回傳回答文字')
+        return {'status': 'answered', 'format': 'markdown', 'text': text,
+                'calculation_source': 'llm'}, dict(self.last_attempt)

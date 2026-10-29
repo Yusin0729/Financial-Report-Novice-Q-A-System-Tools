@@ -17,20 +17,20 @@ class OpenAIAnswerTests(unittest.TestCase):
         a=OpenAIAnswerer('FAKE-KEY',replace(QASettings(),answer_provider='openai',answer_model='gpt-test-only'))
         result={'status':'completed','model':'gpt-test-only','usage':{'input_tokens':100,'output_tokens':20,'total_tokens':120},
                 'output':[{'type':'message','role':'assistant','status':'completed',
-                           'content':[{'type':'output_text','text':json.dumps(response())}]}]}
+                           'content':[{'type':'output_text','text':'平均值為150百萬元。[S1]'}]}]}
         result.update(changes)
         a.post=Mock(side_effect=[{'input_tokens':100},result])
         return a
 
     def test_count_full_payload_strict_schema_and_no_storage(self):
         a=self.answerer();answer,usage=a.answer('原題',[source()])
-        self.assertEqual(answer,response());self.assertEqual(usage['usage']['output_tokens'],20)
+        self.assertEqual(answer['text'],'平均值為150百萬元。[S1]');self.assertEqual(answer['calculation_source'],'llm');self.assertEqual(usage['usage']['output_tokens'],20)
         count=a.post.call_args_list[0].args;generate=a.post.call_args_list[1].args
         self.assertEqual(count[0],'responses/input_tokens');self.assertEqual(generate[0],'responses')
         self.assertIn(source()['text'],count[1]['input'])
-        for key in ('model','instructions','input','text'): self.assertEqual(count[1][key],generate[1][key])
-        self.assertTrue(count[1]['text']['format']['strict'])
-        self.assertFalse(count[1]['text']['format']['schema']['additionalProperties'])
+        for key in ('model','instructions','input'): self.assertEqual(count[1][key],generate[1][key])
+        self.assertNotIn('text',count[1])
+        self.assertNotIn('response_format',generate[1])
         self.assertFalse(generate[1]['store']);self.assertEqual(generate[1]['truncation'],'disabled')
         self.assertNotIn('FAKE-KEY',json.dumps(generate[1]))
 
@@ -41,7 +41,7 @@ class OpenAIAnswerTests(unittest.TestCase):
 
     def test_refusal_incomplete_bad_json_or_multiple_text_rejected(self):
         outputs=[{'status':'incomplete'}, {'output':[{'type':'message','role':'assistant','status':'completed','content':[{'type':'refusal','refusal':'fake'}]}]},
-                 {'output':[{'type':'message','role':'assistant','status':'completed','content':[{'type':'output_text','text':'bad-json'}]}]}]
+                 {'output':[{'type':'message','role':'assistant','status':'completed','content':[{'type':'output_text','text':''}]}]}]
         for change in outputs:
             with self.assertRaises(ValueError): self.answerer(**change).answer('原題',[source()])
 

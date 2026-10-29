@@ -1,4 +1,4 @@
-"""OpenAI Responses：完整token預檢、嚴格JSON、拒答／截斷停止；不自動重試。"""
+"""OpenAI Responses：完整token預檢、直接文字回答、拒答／截斷停止；不自動重試。"""
 import json
 import urllib.error
 import urllib.request
@@ -33,10 +33,9 @@ class OpenAIAnswerer:
             raise RuntimeError(f'OpenAI請求失敗（{type(error).__name__}）；未重試') from None
 
     def answer(self,question,evidence):
-        self.last_attempt={'provider':'openai','model':self.settings.answer_model}
+        self.last_attempt={'provider':'openai','model':self.settings.answer_model,'system_prompt':SYSTEM_PROMPT,'prompt_source':'default'}
         content=json.dumps({'original_question':question,'evidence':[{k:e[k] for k in ('id','doc_id','page','text')} for e in evidence]},ensure_ascii=False)
-        body={'model':self.settings.answer_model,'instructions':SYSTEM_PROMPT,'input':content,
-              'text':{'format':{'type':'json_schema','name':'financial_answer','strict':True,'schema':json_schema(RESPONSE_SCHEMA)}}}
+        body={'model':self.settings.answer_model,'instructions':SYSTEM_PROMPT,'input':content}
         counted=self.post('responses/input_tokens',body)
         tokens=counted.get('input_tokens')
         if type(tokens) is not int or tokens<1: raise ValueError('OpenAI未回傳有效輸入token數，未生成')
@@ -55,6 +54,6 @@ class OpenAIAnswerer:
                 if part.get('type')!='output_text': raise ValueError('OpenAI拒答或非文字輸出，已停止')
                 parts.append(part.get('text',''))
         if len(parts)!=1: raise ValueError('OpenAI回答筆數不符')
-        try: answer=json.loads(parts[0])
-        except (ValueError,TypeError): raise ValueError('OpenAI回答不是有效JSON') from None
-        return answer,dict(self.last_attempt)
+        if not parts[0].strip(): raise ValueError('OpenAI未回傳回答文字')
+        return {'status':'answered','format':'markdown','text':parts[0],
+                'calculation_source':'llm'},dict(self.last_attempt)

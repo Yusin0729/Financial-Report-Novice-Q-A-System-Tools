@@ -2,7 +2,7 @@
 import re
 from dataclasses import replace
 from Code_2.config.embedding import BATCH_PATTERN
-from Code_2.config.qa import QASettings, MODE_LABELS, SYSTEM_PROMPT, MAX_GEMINI_PROMPT_CHARACTERS, gemini_prompt
+from Code_2.config.qa import QASettings, MODE_LABELS, SYSTEM_PROMPT, LEGACY_SYSTEM_PROMPT, MAX_GEMINI_PROMPT_CHARACTERS, gemini_prompt
 from Code_2.functions.embedding.indexing import recent_attempts
 from Code_2.functions.qa.catalog import list_indexes
 from Code_2.functions.embedding.paths import locations
@@ -23,7 +23,7 @@ def metadata(settings, web):
     return {'api_settings': public_settings(settings.project_root), 'indexes': list_indexes(settings),
             'defaults': {'retrieve_k': qa.retrieve_k, 'evidence_k': qa.evidence_k,
                          'max_retrieve_k': qa.max_retrieve_k, 'export_enabled': settings.export_enabled,
-                         'backend': settings.default_backend, 'gemini_system_prompt': SYSTEM_PROMPT,
+                         'backend': settings.default_backend, 'gemini_system_prompt': SYSTEM_PROMPT, 'legacy_gemini_system_prompt': LEGACY_SYSTEM_PROMPT,
                          'max_gemini_prompt_characters': MAX_GEMINI_PROMPT_CHARACTERS},
             'models': {'rerank': qa.rerank_model, 'answer': qa.answer_model},
             'local_rerank_profiles': local_profiles(),

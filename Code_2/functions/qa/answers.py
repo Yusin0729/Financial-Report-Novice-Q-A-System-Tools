@@ -1,4 +1,4 @@
-"""驗證引用原文及有限四則運算；不使用eval、不讓模型提供計算結果。"""
+"""新回答直接顯示模型文字；舊結構化報告驗證保留供相容用途。"""
 import ast
 import re
 from decimal import Decimal, localcontext, DecimalException
@@ -88,6 +88,11 @@ def calculate(plan, evidence):
 
 
 def validate_answer(answer, sources):
+    # Direct-text responses do not enter legacy quote/calculation validation.
+    if isinstance(answer, dict) and answer.get('format') == 'markdown':
+        if not isinstance(answer.get('text'), str) or not answer['text'].strip():
+            raise ValueError('LLM未回傳回答文字')
+        return answer
     evidence = {e['id']: e for e in sources}
     if (not isinstance(answer, dict) or set(answer) != {'status', 'reason', 'claims', 'calculations'} or
             answer['status'] not in ('answered', 'insufficient_evidence') or
@@ -160,6 +165,8 @@ def render_answer(result):
                           f'{source["doc_id"]}｜PDF實體頁序 {", ".join(map(str, source["page"]))}', source['text']])
         return '\n\n'.join(lines)
     answer = result['answer']
+    if answer.get('format') == 'markdown':
+        return answer['text']
     incomplete = answer['status'] == 'insufficient_evidence'
     lines = ['有證據支持的部分' if incomplete and answer['claims'] else '證據不足' if incomplete else '回答']
     if answer['reason'] and not incomplete:

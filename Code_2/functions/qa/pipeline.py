@@ -239,7 +239,7 @@ def ask(question, settings, *, backend='bge', collection=None, stock_code=None, 
         if qa.answer_provider == 'gemini':
             base['answer_system_prompt'] = gemini_prompt(qa.gemini_system_prompt)
             if qa.gemini_system_prompt is not None:
-                base['prompt_version'] = 'evidence-answer/custom'
+                base['prompt_version'] = 'evidence-answer/direct-text-custom-2.0'
         try:
             phase_started = time.perf_counter()
             answer, usage = answerer.answer(question, selected)
@@ -249,7 +249,9 @@ def ask(question, settings, *, backend='bge', collection=None, stock_code=None, 
             if isinstance(attempt, dict):
                 base['generation'] = dict(attempt)
         base['generation'] = usage
-        stage = 'validate_answer'
+        stage = 'answer'
+        # Providers return direct text; this checks nonempty text only. Legacy
+        # structured fixtures remain readable without changing old reports.
         answer = validate_answer(answer, selected)
         base['completed_stages'].append('answer')
         return {**base, 'status': answer['status'], 'answer': answer}

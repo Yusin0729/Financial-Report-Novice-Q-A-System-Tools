@@ -212,6 +212,9 @@ class ServiceTests(unittest.TestCase):
 
 class PipelineTests(unittest.TestCase):
     def setUp(self):
+        import tempfile
+        self._cache_temp = tempfile.TemporaryDirectory()
+        self.addCleanup(self._cache_temp.cleanup)
         self.provider = Mock(profile=PROFILE)
         self.provider.embed.return_value = [[1., 0.]]
         self.store = Mock(collection_name='test')
@@ -222,7 +225,7 @@ class PipelineTests(unittest.TestCase):
         self.answerer.answer.return_value = (response(), {'model': 'offline-only'})
 
     def run_ask(self, **kwargs):
-        return ask('原始問題', Settings(), index=INDEX,
+        return ask('原始問題', Settings(project_root=Path(self._cache_temp.name)), index=INDEX,
                    provider_factory=lambda *a: self.provider, store_factory=lambda *a, **k: self.store,
                    service_factory=lambda *a: (self.reranker, self.answerer), **kwargs)
 
@@ -250,7 +253,7 @@ class PipelineTests(unittest.TestCase):
         self.assertEqual(result['status'], 'insufficient_evidence')
         self.assertEqual(len(result['answer']['claims']), 1)
         self.assertIn(TEXT, result['retrieved_evidence'][0]['text'])
-        self.assertEqual(result['prompt_version'], 'evidence-answer/1.1')
+        self.assertEqual(result['prompt_version'], 'evidence-answer/direct-text-2.0')
 
     def test_rerank_failure_does_not_fall_back_to_generation(self):
         self.reranker.rerank.side_effect = RuntimeError('安全錯誤')
@@ -281,7 +284,7 @@ class PipelineTests(unittest.TestCase):
         bad = response()
         bad['claims'][0]['citations'][0]['id'] = 'S999'
         self.answerer.answer.return_value = bad, {}
-        self.assertEqual(self.run_ask()['stage'], 'validate_answer')
+        self.assertEqual(self.run_ask()['stage'], 'answer')
 
     def test_filters_not_stored_in_signature_fail_closed(self):
         with self.assertRaises(ValueError):

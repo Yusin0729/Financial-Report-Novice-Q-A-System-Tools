@@ -16,13 +16,13 @@ class GeminiPromptTests(unittest.TestCase):
                 def post(method,body):
                     calls.append((method,body))
                     if method=='countTokens':return {'totalTokens':100}
-                    return {'candidates':[{'finishReason':'STOP','content':{'parts':[{'text':json.dumps({'status':'insufficient_evidence','reason':'缺資料','claims':[],'calculations':[]})}]}}]}
+                    return {'candidates':[{'finishReason':'STOP','content':{'parts':[{'text':'平均值 = (100 + 200) / 2 = 150 百萬元。[S1]'}]}}]}
                 adapter.post=post
                 _,usage=adapter.answer('問題',[{'id':'S1','doc_id':'doc','page':[1],'text':'正文'}])
                 counted=calls[0][1]['generateContentRequest'];generated=calls[1][1]
                 for body in (counted,generated):
                     self.assertEqual(body['systemInstruction']['parts'][0]['text'],custom or SYSTEM_PROMPT)
-                    self.assertIn('responseSchema',body['generationConfig'])
+                    self.assertNotIn('responseSchema',body['generationConfig'])
                 self.assertEqual(usage['prompt_source'],'custom' if custom else 'default')
 
     def test_invalid_prompt_rejected_before_network(self):
