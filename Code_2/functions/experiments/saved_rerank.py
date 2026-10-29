@@ -86,8 +86,19 @@ def candidates(row, batch):
     return evidence, metadata
 
 
+def requires_child_inputs(source,rows):
+    for row in rows:
+        query=row.get('query') or {}
+        if query.get('candidate_unit')=='child':return True
+        for e in query.get('retrieved_evidence',[]):
+            if e.get('parent_relation') or (e.get('matched_chunk_ids') and e['matched_chunk_ids']!=[e.get('chunk_id')]):
+                return True
+    return False
+
+
 def preview(settings, run, candidate_unit="returned"):
     source, rows, batch, digest = load_source(settings, run)
+    if requires_child_inputs(source,rows):candidate_unit='child'
     child_context = None
     if candidate_unit == 'child':
         from Code_2.functions.experiments.child_candidates import ChildCandidates
@@ -120,6 +131,7 @@ def validate_task(data, settings):
     if not set(ids).issubset(available):
         raise ValueError('所選題號不存在')
     unit = data.get('candidate_unit', 'returned')
+    if requires_child_inputs(source,rows):unit='child'
     if unit not in ('child', 'returned'):
         raise ValueError('候選單位無效')
     child_context = None
@@ -156,6 +168,7 @@ def create_reranker(settings, qa):
 def run(data, settings, *, reranker_factory=create_reranker, progress=None):
     started = time.perf_counter()
     source, rows, batch, digest = load_source(settings, data['source_run'], data['source_sha256'])
+    if requires_child_inputs(source,rows):data={**data,'candidate_unit':'child'}
     chosen = [r for r in rows if r['ID'] in data['ids']]
     if len(chosen) != len(data['ids']):
         raise ValueError('題號已變更，未呼叫API')
@@ -230,7 +243,9 @@ def run(data, settings, *, reranker_factory=create_reranker, progress=None):
                 if batch:
                     cs = []
                     for e in selected:
-                        c = copy.deepcopy(metadata[e['chunk_id']])
+                        source_node = metadata.get(e['chunk_id']) or report_context.node(e)
+                        if not isinstance(source_node,dict):raise ValueError('找不到相符來源父項作評分')
+                        c = copy.deepcopy(source_node)
                         c['parent_id'] = c.get('group_id') if c.get('group_id') != c['chunk_id'] else None
                         cs.append({'chunk': c, 'rank': e['rerank_rank'], 'text': e['text'],
                                    'matched_chunk_ids': e['matched_chunk_ids'], 'parent_relation': e.get('parent_relation')})

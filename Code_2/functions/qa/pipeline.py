@@ -41,7 +41,7 @@ def build_filters(signature, stock_code=None, report_year=None):
     return {'$and': clauses} if len(clauses) > 1 else clauses[0] if clauses else None
 
 
-def evidence_rows(rows, *, include_heading_parent=False):
+def evidence_rows(rows, *, include_heading_parent=False, expand_parents=True):
     output, seen, parents = [], set(), {}
     def append_evidence(value,matched_id,rank,row,relation):
         cid=value['chunk_id']
@@ -50,6 +50,8 @@ def evidence_rows(rows, *, include_heading_parent=False):
                 raise ValueError('同一父項的召回內容不一致')
             if matched_id not in parents[cid][1]['matched_chunk_ids']:
                 parents[cid][1]['matched_chunk_ids'].append(matched_id)
+                if 'rerank_rank' in row:
+                    parents[cid][1].setdefault('selected_child_ranks',[]).append(row['rerank_rank'])
             return
         body,_=convert_content(value['content'])
         context=embedding_context(value)
@@ -58,9 +60,16 @@ def evidence_rows(rows, *, include_heading_parent=False):
                   'matched_chunk_ids':[matched_id], 'parent_id':cid if relation else None,
                   'parent_relation':relation,'input_sha256':row['payload']['input_sha256'],
                   'retrieval_rank':rank,'retrieval_distance':row['distance']}
+        for key in ('rerank_rank','rerank_score','rerank_raw_score'):
+            if key in row: evidence[key]=row[key]
+        if 'rerank_rank' in row:
+            evidence['selected_child_ranks']=[row['rerank_rank']]
+            evidence['rerank_score_scope']='best_selected_child'
         output.append(evidence)
         parents[cid]=(value,evidence)
-    for rank, row in enumerate(rows, 1):
+    for order, row in enumerate(rows, 1):
+        rank=row.get('_retrieval_rank',order)
+        if type(rank) is not int or rank<1:raise ValueError('召回排名無效')
         payload, meta = row['payload'], row['metadata']
         chunk = payload.get('original_chunk', {})
         cid, doc_id, pages = chunk.get('chunk_id'), chunk.get('doc_id'), chunk.get('page')
@@ -73,6 +82,9 @@ def evidence_rows(rows, *, include_heading_parent=False):
             raise ValueError('召回來源識別、頁碼或payload錯配')
         seen.add(cid)
         matched_id = cid
+        if not expand_parents:
+            append_evidence(chunk,matched_id,rank,row,None)
+            continue
         parent_id = chunk.get('parent_id')
         heading_id=chunk.get('heading_parent_id')
         heading=payload.get('original_heading_parent')
@@ -93,6 +105,20 @@ def evidence_rows(rows, *, include_heading_parent=False):
         if include_heading_parent and heading_id is not None:
             append_evidence(heading,matched_id,rank,row,'heading')
     return output
+
+
+def selected_evidence(selected, raw_rows, *, include_heading_parent=False):
+    """Only expand selected child hits; retain original retrieval and rerank ranks."""
+    lookup={row['chunk_id']:(rank,row) for rank,row in enumerate(raw_rows,1)}
+    rows=[];seen=set()
+    for child in selected:
+        cid=child.get('chunk_id')
+        if cid not in lookup or cid in seen:
+            raise ValueError('重排序結果不是本次命中子項或包含重複項')
+        seen.add(cid);rank,row=lookup[cid]
+        rows.append({**row,'_retrieval_rank':rank,
+            **{key:child[key] for key in ('rerank_rank','rerank_score','rerank_raw_score') if key in child}})
+    return evidence_rows(rows,include_heading_parent=include_heading_parent)
 
 
 def ask(question, settings, *, backend='bge', collection=None, stock_code=None, report_year=None,
@@ -204,7 +230,9 @@ def ask(question, settings, *, backend='bge', collection=None, stock_code=None, 
         retrieval_seconds = time.perf_counter()-phase_started
         phase_started = time.perf_counter()
         heading_parent = qa.include_heading_parent and not is_original
-        sources = evidence_rows(raw_rows, include_heading_parent=heading_parent)
+        sources = evidence_rows(raw_rows, expand_parents=False)
+        base.update(candidate_unit='child',parent_expansion_stage='after_selection',
+                    duplicate_parent_policy='merge_without_refill')
         observe('retrieval', rows=raw_rows, sources=sources, elapsed_seconds=retrieval_seconds,
                 parent_expansion_seconds=time.perf_counter()-phase_started)
         base['retrieved_evidence'] = sources
@@ -221,18 +249,24 @@ def ask(question, settings, *, backend='bge', collection=None, stock_code=None, 
             selected_rows = raw_rows[:qa.evidence_k]
             base['selected_child_ids'] = [row['chunk_id'] for row in selected_rows]
             base['evidence_selection'] = 'retrieval_children_then_parent'
-            base['evidence'] = evidence_rows(selected_rows, include_heading_parent=heading_parent)
+            base['evidence'] = selected_evidence(sources[:qa.evidence_k], raw_rows, include_heading_parent=heading_parent)
             return {**base, 'status': 'retrieved'}
         if need_rerank:
             stage = 'rerank'
             phase_started = time.perf_counter()
-            selected, usage = reranker.rerank(question, sources)
-            observe('rerank', sources=selected, elapsed_seconds=time.perf_counter()-phase_started)
-            base.update(evidence=selected, rerank=usage)
+            ranked_children, usage = reranker.rerank(question, sources)
+            observe('rerank', sources=ranked_children, elapsed_seconds=time.perf_counter()-phase_started)
+            base.update(reranked_evidence=ranked_children, rerank=usage,
+                        selected_child_ids=[c['chunk_id'] for c in ranked_children],
+                        evidence_selection='rerank_children_then_parent',parent_expansion_stage='after_child_rerank')
+            selected = selected_evidence(ranked_children, raw_rows, include_heading_parent=heading_parent)
+            base['evidence'] = selected
             base['completed_stages'].append('rerank')
         else:
-            selected = sources[:qa.evidence_k]
-            base.update(evidence=selected, evidence_selection='retrieval_top_k')
+            children = sources[:qa.evidence_k]
+            selected = selected_evidence(children, raw_rows, include_heading_parent=heading_parent)
+            base.update(evidence=selected, selected_child_ids=[c['chunk_id'] for c in children],
+                        evidence_selection='retrieval_children_then_parent')
         if mode == 'rerank':
             return {**base, 'status': 'reranked'}
         stage = 'answer'

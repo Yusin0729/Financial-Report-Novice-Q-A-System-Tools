@@ -148,7 +148,7 @@ class SavedRerankTests(unittest.TestCase):
             c['content_prefix']=context_prefix(c);c['content']=c['content_prefix']+text
             return c
         c1=node('child1','第一個子項','parent1');c2=node('child2','第二個子項','parent1');c3=node('child3','第三個子項')
-        parent=node('parent1','完整父層正文不能截斷');parent['node_type']='content_parent'
+        parent=node('parent1','第一個子項第二個子項完整父層正文不能截斷');parent['node_type']='content_parent'
         chunk_file=self.settings.input_dir/'batch'/'parent_child'/'2024_2330_chunk_250.json'
         chunk_file.parent.mkdir(parents=True)
         raw=json.dumps({'doc_id':doc,'chunks':[c3,c2,c1],'parents':[parent]},ensure_ascii=False).encode()
