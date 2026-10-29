@@ -15,7 +15,6 @@
       <p class="nav-label">資料準備</p>
       <button class="nav-button" data-page="prepare"><span class="nav-icon">▤</span>前處理</button>
       <button class="nav-button" data-page="database"><span class="nav-icon">▦</span>向量資料庫</button>
-      <button class="nav-button" data-page="files"><span class="nav-icon">▱</span>資料夾</button>
       <p class="nav-label">研究與設定</p>
       <button class="nav-button active" data-page="query"><span class="nav-icon">⌕</span>問答系統</button>
       <button class="nav-button" data-page="api"><span class="nav-icon">⚙</span>API 金鑰</button>
@@ -31,6 +30,12 @@
 
       <section id="page-prepare" class="page hidden">
         <div class="page-heading"><div><span class="eyebrow">PREPARATION</span><h1>前處理</h1><p>從 PDF 轉換、整理與加標籤，到第四階段切分。</p></div></div>
+      <details id="prepare-files" class="prepare-folder-browser"><summary>▱ 瀏覽／刪除資料夾</summary>
+        <div class="page-heading"><div><span class="eyebrow">PROJECT FILES</span><h2>資料夾管理</h2><p>瀏覽財報與輸出檔。資料夾移到垃圾桶前會請你確認，可再還原。</p></div></div>
+        <section class="card"><div class="download-row"><label>位置 <select id="files-area"><option value="output">階段輸出與測報</option><option value="sources">財報來源</option><option value="trash">垃圾桶</option></select></label><button id="files-up" class="secondary-button">上一層</button><button id="files-refresh" class="secondary-button">重新整理</button></div><p id="files-path" aria-live="polite"></p><p id="files-status" role="status"></p><div id="files-list" class="file-list"></div><button id="files-more" class="secondary-button" hidden>載入更多</button></section>
+        <section class="card" id="files-preview" hidden><h2 id="files-preview-name"></h2><a id="files-download" class="secondary-button" download>下載檔案</a><p id="files-preview-note"></p><pre id="files-preview-text" class="file-preview"></pre></section>
+        <dialog id="files-confirm"><form method="dialog"><h2>確認移到垃圾桶</h2><p id="files-confirm-detail"></p><label class="field">請輸入資料夾名稱確認<input id="files-confirm-name" autocomplete="off"></label><p id="files-confirm-error" role="alert"></p><div class="download-row"><button value="cancel" class="secondary-button">取消</button><button id="files-confirm-submit" type="button" class="primary-button">確認移到垃圾桶</button></div></form></dialog>
+      </details>
       </section>
       <section id="page-database" class="page hidden">
         <div class="page-heading"><div><span class="eyebrow">VECTOR STORE</span><h1>向量資料庫</h1><p>建立索引、查看財報片段，或勾選預覽刪除資料。</p></div></div>
@@ -104,12 +109,7 @@
 <p id="saved-rerank-status" role="status"></p><button id="saved-rerank-start" type="button" class="primary-button submit-action">使用此報告開始重排序</button>
 </div><div id="report-content" class="markdown-content"><div class="empty-state"><h3>選擇一份紀錄</h3><p>直接閱讀 Markdown，無需查看 JSON。</p></div></div></section></div><section id="history-index" class="card operation-result hidden"></section>
       </section>
-      <section id="page-files" class="page hidden">
-        <div class="page-heading"><div><span class="eyebrow">PROJECT FILES</span><h1>資料夾</h1><p>瀏覽財報與輸出檔。資料夾移到垃圾桶前會請你確認，可再還原。</p></div></div>
-        <section class="card"><div class="download-row"><label>位置 <select id="files-area"><option value="output">階段輸出與測報</option><option value="sources">財報來源</option><option value="trash">垃圾桶</option></select></label><button id="files-up" class="secondary-button">上一層</button><button id="files-refresh" class="secondary-button">重新整理</button></div><p id="files-path" aria-live="polite"></p><p id="files-status" role="status"></p><div id="files-list" class="file-list"></div><button id="files-more" class="secondary-button" hidden>載入更多</button></section>
-        <section class="card" id="files-preview" hidden><h2 id="files-preview-name"></h2><a id="files-download" class="secondary-button" download>下載檔案</a><p id="files-preview-note"></p><pre id="files-preview-text" class="file-preview"></pre></section>
-        <dialog id="files-confirm"><form method="dialog"><h2>確認移到垃圾桶</h2><p id="files-confirm-detail"></p><label class="field">請輸入資料夾名稱確認<input id="files-confirm-name" autocomplete="off"></label><p id="files-confirm-error" role="alert"></p><div class="download-row"><button value="cancel" class="secondary-button">取消</button><button id="files-confirm-submit" type="button" class="primary-button">確認移到垃圾桶</button></div></form></dialog>
-      </section>
+
       <footer class="page-footer"><span>完整財報分析器 · 實驗工作區</span><span>金鑰由本機 API 設定管理</span></footer>
     </div>
   </main>

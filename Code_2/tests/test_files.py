@@ -13,6 +13,15 @@ class FileTests(unittest.TestCase):
         (self.root/'Output'/'batch'/'答案.md').write_text('正文',encoding='utf-8')
         (self.root/'Output'/'.env').write_text('SECRET',encoding='utf-8')
 
+    def test_browser_is_inside_prepare_page_without_separate_navigation(self):
+        html=(Path(__file__).resolve().parents[1]/'functions/web/static/index.html').read_text(encoding='utf-8')
+        self.assertNotIn('data-page="files"',html)
+        self.assertNotIn('id="page-files"',html)
+        prepare=html.split('id="page-prepare"',1)[1].split('id="page-database"',1)[0]
+        self.assertIn('id="prepare-files"',prepare)
+        self.assertIn('id="files-list"',prepare)
+        self.assertIn('id="files-confirm"',prepare)
+
     def test_listing_preview_and_hidden_exclusion(self):
         self.assertEqual([e['name'] for e in files.listing(self.settings,'output')['entries']],['batch'])
         self.assertEqual(files.preview(self.settings,'output','batch/答案.md')['text'],'正文')

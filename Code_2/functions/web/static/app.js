@@ -6,13 +6,14 @@ function el(tag, text, cls) {const n=document.createElement(tag); if(text!==unde
 function alertMessage(message='') {$('alert').textContent=message; $('alert').classList.toggle('hidden',!message);}
 async function api(path, task) {const response=await fetch(path,task?{method:'POST',headers:{'Content-Type':'application/json','X-App-Token':document.querySelector('meta[name="app-token"]').content},body:JSON.stringify(task)}:{});const data=await response.json();if(!response.ok)throw Error(data.error||'本機服務讀取失敗');return data;}
 function page(name) {
- if(!['query','history','prepare','database','api','files'].includes(name))name='query';
+ if(name==='files'){name='prepare';history.replaceState(null,'','#prepare');}
+ if(!['query','history','prepare','database','api'].includes(name))name='query';
  document.querySelectorAll('.page').forEach(n=>n.classList.toggle('hidden',n.id!=='page-'+name));
  document.querySelectorAll('[data-page]').forEach(n=>{n.classList.toggle('active',n.dataset.page===name);n.setAttribute('aria-current',n.dataset.page===name?'page':'false');});
- $('breadcrumb').textContent={query:'問答系統',prepare:'前處理',database:'向量資料庫',api:'API 金鑰',history:'執行紀錄',files:'資料夾'}[name];
+ $('breadcrumb').textContent={query:'問答系統',prepare:'前處理',database:'向量資料庫',api:'API 金鑰',history:'執行紀錄'}[name];
  const isWorkspace=['prepare','database'].includes(name);$('workspace-host').classList.toggle('hidden',!isWorkspace);
  if(isWorkspace){const frame=$('workspace-frame');const hash=name==='database'?'database':'prepare';if(!frame.getAttribute('src'))frame.src='/workspace/index.html#'+hash;else frame.contentWindow.postMessage({type:'workspace-page',page:hash},location.origin);}
- if(name==='files')window.fileBrowser?.open();
+ if(name==='prepare'&&$('prepare-files').open)window.fileBrowser?.open();
  if(name==='api')openApiSettings($('api-settings-host'));
  if(name!=='api'&&$('api-setting-key'))$('api-setting-key').value='';
 }
